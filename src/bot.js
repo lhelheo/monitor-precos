@@ -13,7 +13,8 @@ const HELP = `<b>Comandos</b>
 /novo &lt;nome&gt; — cria um produto a monitorar
 /link &lt;id&gt; &lt;url&gt; — adiciona um anúncio (Kabum, Amazon, Magalu, Mercado Livre ou Shopee)
 /alvo &lt;id&gt; &lt;valor&gt; — preço-alvo (ex.: /alvo 1 350)
-/palavras &lt;id&gt; &lt;termos&gt; — filtro para mensagens de canais (ex.: dualsense -edge)
+/palavras &lt;id&gt; &lt;termos&gt; — filtro de busca e de ofertas (ex.: controle dualsense -edge -base)
+/faixa &lt;id&gt; &lt;mín&gt; &lt;máx&gt; — faixa de preço aceita (ex.: /faixa 1 250 700)
 /lista — produtos e último preço
 /historico &lt;id&gt; — resumo do histórico
 /check &lt;id&gt; — verifica agora
@@ -106,6 +107,16 @@ export function createBot() {
     if (!id || !products.get(id)) return reply(ctx, 'Uso: /palavras &lt;id&gt; dualsense -edge');
     products.setKeywords(id, rest.join(' ') || null);
     return reply(ctx, `🔎 Filtro do produto #${id}: ${esc(rest.join(' ') || '(nenhum)')}`);
+  });
+
+  bot.command('faixa', (ctx) => {
+    const [idS, minS, maxS] = arg(ctx).split(/\s+/);
+    const id = parseId(idS);
+    if (!id || !products.get(id) || !minS || !maxS) return reply(ctx, 'Uso: /faixa <id> <mín> <máx>  (ex.: /faixa 1 250 700; use - para ignorar um dos limites)');
+    const min = minS === '-' ? null : parseMoney(minS);
+    const max = maxS === '-' ? null : parseMoney(maxS);
+    products.setRange(id, min, max);
+    return reply(ctx, `💲 Faixa do produto #${id}: ${min ? fmt(min) : 'sem mínimo'} a ${max ? fmt(max) : 'sem máximo'}`);
   });
 
   bot.command('lista', (ctx) => {

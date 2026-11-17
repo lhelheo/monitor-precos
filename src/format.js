@@ -24,6 +24,7 @@ export function formatAlert({ product, listing, scraped, eff, reasons, statsAll 
   for (const h of b.hints.slice(0, 3)) {
     lines.push(`💡 Possível: <code>${esc(h.code ?? '—')}</code> ${esc(h.label)} → ${fmt(h.wouldBeCents)} (${h.blocker ?? CONF[h.confidence]})`);
   }
+  if (listing.store === 'zoom') lines.push('⚠️ Preço de comparador (Zoom): confira na loja antes de comprar');
   if (product.target_cents) lines.push(`🎯 Alvo: ${fmt(product.target_cents)}`);
   if (statsAll) lines.push(`📊 Histórico: mín ${fmt(statsAll.min)} · mediana ${fmt(statsAll.median)}`);
   if (scraped.seller) lines.push(`🏪 Vendido por: ${esc(scraped.seller)}`);

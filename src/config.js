@@ -90,6 +90,6 @@ export const config = {
   stores: loadStoreRules(),
   // Lojas ativas. MVP: só as que leem a página sem conta, afiliado ou verificação humana.
   // Para ativar outra loja depois, inclua o id dela aqui (mercadolivre, magalu, shopee).
-  enabledStores: (process.env.ENABLED_STORES || 'kabum,amazon').split(',').map((s) => s.trim()).filter(Boolean),
+  enabledStores: (process.env.ENABLED_STORES || 'kabum,amazon,zoom').split(',').map((s) => s.trim()).filter(Boolean),
   logLevel: process.env.LOG_LEVEL || 'info',
 };

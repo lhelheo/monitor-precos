@@ -3,9 +3,10 @@ import * as amazon from './amazon.js';
 import * as mercadolivre from './mercadolivre.js';
 import * as magalu from './magalu.js';
 import * as shopee from './shopee.js';
+import * as zoom from './zoom.js';
 import { config } from '../config.js';
 
-const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee };
+const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee, zoom };
 // Só lojas habilitadas em config.enabledStores são aceitas (inclusive no bot)
 export const STORES = Object.fromEntries(Object.entries(ALL_STORES).filter(([id]) => config.enabledStores.includes(id)));
 

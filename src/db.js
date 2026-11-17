@@ -95,11 +95,25 @@ CREATE TABLE IF NOT EXISTS kv (
 
 let db;
 
+// Migrações para bancos criados em versões anteriores
+function migrate(d) {
+  const cols = d.prepare('PRAGMA table_info(products)').all().map((c) => c.name);
+  if (!cols.includes('price_min_cents')) d.exec('ALTER TABLE products ADD COLUMN price_min_cents INTEGER');
+  if (!cols.includes('price_max_cents')) d.exec('ALTER TABLE products ADD COLUMN price_max_cents INTEGER');
+  d.exec(`CREATE TABLE IF NOT EXISTS seen_items (
+    source      TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    ts          INTEGER NOT NULL,
+    PRIMARY KEY (source, external_id)
+  )`);
+}
+
 export function openDb(file = config.dbPath) {
   if (db) return db;
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   db = new DatabaseSync(file);
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 
@@ -122,6 +136,8 @@ export const products = {
   list: () => openDb().prepare('SELECT * FROM products ORDER BY id').all(),
   setTarget: (id, cents) => openDb().prepare('UPDATE products SET target_cents = ? WHERE id = ?').run(cents, id),
   setKeywords: (id, kw) => openDb().prepare('UPDATE products SET keywords = ? WHERE id = ?').run(kw || null, id),
+  setRange: (id, minCents, maxCents) =>
+    openDb().prepare('UPDATE products SET price_min_cents = ?, price_max_cents = ? WHERE id = ?').run(minCents || null, maxCents || null, id),
   rename: (id, name) => openDb().prepare('UPDATE products SET name = ? WHERE id = ?').run(name, id),
   setActive: (id, active) => {
     openDb().prepare('UPDATE products SET active = ? WHERE id = ?').run(active ? 1 : 0, id);
@@ -152,6 +168,7 @@ export const listings = {
       )
       .all(ts),
   remove: (id) => openDb().prepare('DELETE FROM listings WHERE id = ?').run(id),
+  setInterval: (id, min) => openDb().prepare('UPDATE listings SET interval_min = ? WHERE id = ?').run(min, id),
   scheduleNow: (id) => openDb().prepare('UPDATE listings SET next_check_at = 0 WHERE id = ?').run(id),
   markOk(id, { title, externalId, priceCents, effectiveCents, inStock, nextCheckAt }) {
     openDb()
@@ -318,4 +335,15 @@ export const alerts = {
 export const kv = {
   get: (k) => openDb().prepare('SELECT value FROM kv WHERE key = ?').get(k)?.value,
   set: (k, v) => openDb().prepare('INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v),
+};
+
+// ---------- itens já vistos (para não avisar a mesma oferta duas vezes) ----------
+export const seen = {
+  /** true só na primeira vez que o item aparece */
+  markNew(source, externalId) {
+    const r = openDb()
+      .prepare('INSERT OR IGNORE INTO seen_items (source, external_id, ts) VALUES (?, ?, ?)')
+      .run(source, String(externalId), now());
+    return r.changes === 1;
+  },
 };
