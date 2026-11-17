@@ -1,8 +1,8 @@
 import { config } from '../config.js';
 import { fetchHtml, fetchJson, renderHtml } from '../http.js';
-import { parseCoupons } from '../coupons/parser.js';
+import { parseCoupons } from '../coupons/parser.ts';
 import { log } from '../log.js';
-import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCents } from './common.js';
+import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCents } from './common.ts';
 
 export const id = 'mercadolivre';
 export const name = 'Mercado Livre';

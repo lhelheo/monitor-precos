@@ -1,9 +1,9 @@
 import { config } from './config.js';
 import { coupons, listings, prices, products, alerts } from './db.js';
-import { effectivePrice } from './pricing.js';
-import { alertReasons, shouldNotify, statsFor } from './alerts.js';
+import { effectivePrice } from './pricing.ts';
+import { alertReasons, shouldNotify, statsFor } from './alerts.ts';
 import { scrape, STORES } from './stores/index.js';
-import { BlockedError } from './stores/common.js';
+import { BlockedError } from './stores/common.ts';
 import { esc, formatAlert } from './format.js';
 import { notify } from './notifier.js';
 import { log } from './log.js';

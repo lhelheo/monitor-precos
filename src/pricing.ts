@@ -13,7 +13,10 @@ const norm = (s) =>
  * @param {any} coupon
  * @param {{ priceCents: number, title?: any, user?: { firstPurchase?: boolean, amazonPrime?: boolean } }} options
  */
-export function couponBlocker(coupon, options) {
+export function couponBlocker(
+  coupon: any,
+  options: { priceCents: number; title?: any; user?: { firstPurchase?: boolean; amazonPrime?: boolean } },
+): string | null {
   const { priceCents, title, user = config.user } = options;
   if (!coupon.kind || !coupon.value) return 'sem valor conhecido';
   if (coupon.conditions?.firstPurchase && !user.firstPurchase) return 'só primeira compra';
@@ -44,7 +47,11 @@ export function couponDiscount(coupon, baseCents) {
  *   minConfidence: menor confiança aceita para entrar no preço efetivo
  * @returns {import('./types.ts').EffectiveResult | null}
  */
-export function effectivePrice(scraped, coupons = [], options = {}) {
+export function effectivePrice(
+  scraped: any,
+  coupons: any[] = [],
+  options: { minConfidence?: string; user?: { firstPurchase?: boolean; amazonPrime?: boolean }; rules?: any } = {},
+): any {
   const { minConfidence = 'probable', user = config.user, rules } = options;
   const r = rules ?? config.stores[scraped.store] ?? {};
   const price = scraped.priceCents;

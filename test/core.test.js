@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseCoupons, parseAnnouncedPrice } from '../src/coupons/parser.js';
-import { effectivePrice, couponBlocker } from '../src/pricing.js';
-import { toCents } from '../src/stores/common.js';
+import { parseCoupons, parseAnnouncedPrice } from '../src/coupons/parser.ts';
+import { effectivePrice, couponBlocker } from '../src/pricing.ts';
+import { toCents } from '../src/stores/common.ts';
 import { parse as parseKabum } from '../src/stores/kabum.js';
 import { parse as parseAmazon } from '../src/stores/amazon.js';
 import { parseApi as parseShopee } from '../src/stores/shopee.js';
 import { normalizeUrl, storeFor } from '../src/stores/index.js';
-import { matchesKeywords } from '../src/coupons/ingest.js';
-import { alertReasons } from '../src/alerts.js';
+import { matchesKeywords } from '../src/coupons/ingest.ts';
+import { alertReasons } from '../src/alerts.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixture = (n) => fs.readFileSync(path.join(here, 'fixtures', n), 'utf8');
@@ -147,7 +147,7 @@ test('URLs: normalização e identificação de loja', () => {
   assert.equal(storeFor('https://exemplo.com/produto')?.id, undefined);
 });
 
-import { slugText, storeIdFromName, parseOffer } from '../src/discovery/promobit.js';
+import { slugText, storeIdFromName, parseOffer } from '../src/discovery/promobit.ts';
 
 test('Promobit: texto legível do endereço da oferta', () => {
   assert.equal(slugText('https://www.promobit.com.br/oferta/controle-sem-fio-playstation-5-dualsense-branco-3200281/'), 'controle sem fio playstation 5 dualsense branco');

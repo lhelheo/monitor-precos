@@ -1,6 +1,6 @@
 import { fetchHtml, renderHtml } from '../http.js';
-import { parseCoupons } from '../coupons/parser.js';
-import { BlockedError, findDeep, loadHtml, nextData, productFromJsonLd, toCents } from './common.js';
+import { parseCoupons } from '../coupons/parser.ts';
+import { BlockedError, findDeep, loadHtml, nextData, productFromJsonLd, toCents } from './common.ts';
 
 export const id = 'kabum';
 export const name = 'KaBuM!';

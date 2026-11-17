@@ -3,10 +3,10 @@ import { config } from './config.js';
 import { coupons, listings, prices, products } from './db.js';
 import { checkListing } from './checker.js';
 import { storeFor, normalizeUrl, STORES } from './stores/index.js';
-import { ingestText } from './coupons/ingest.js';
+import { ingestText } from './coupons/ingest.ts';
 import { esc, formatDeal } from './format.js';
 import { setSender } from './notifier.js';
-import { fmt } from './stores/common.js';
+import { fmt } from './stores/common.ts';
 import { log } from './log.js';
 
 const HELP = `<b>Comandos</b>

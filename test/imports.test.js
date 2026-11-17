@@ -14,7 +14,7 @@ function listar(dir) {
   return readdirSync(dir).flatMap((f) => {
     const p = path.join(dir, f);
     if (statSync(p).isDirectory()) return listar(p);
-    return f.endsWith('.js') && !SKIP.has(f) ? [p] : [];
+    return /\.(js|ts)$/.test(f) && !f.endsWith('.d.ts') && !SKIP.has(f) ? [p] : [];
   });
 }
 

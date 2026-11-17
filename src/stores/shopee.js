@@ -1,5 +1,5 @@
 import { renderHtml } from '../http.js';
-import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.js';
+import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.ts';
 
 export const id = 'shopee';
 export const name = 'Shopee';

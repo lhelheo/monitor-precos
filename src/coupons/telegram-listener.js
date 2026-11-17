@@ -3,7 +3,7 @@ import { StringSession } from 'telegram/sessions/index.js';
 import { NewMessage } from 'telegram/events/index.js';
 import { config } from '../config.js';
 import { log } from '../log.js';
-import { ingestText } from './ingest.js';
+import { ingestText } from './ingest.ts';
 
 /**
  * Lê canais públicos de promoção do Telegram (ex.: canais de ofertas/cupons) usando a SUA conta

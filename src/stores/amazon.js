@@ -1,6 +1,6 @@
 import { fetchHtml, renderHtml } from '../http.js';
-import { parseCoupons } from '../coupons/parser.js';
-import { BlockedError, cleanText, loadHtml, toCents } from './common.js';
+import { parseCoupons } from '../coupons/parser.ts';
+import { BlockedError, cleanText, loadHtml, toCents } from './common.ts';
 
 export const id = 'amazon';
 export const name = 'Amazon';

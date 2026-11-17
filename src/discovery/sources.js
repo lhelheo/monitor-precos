@@ -1,5 +1,5 @@
 import { fetchHtml } from '../http.js';
-import { BlockedError, loadHtml, nextData, toCents } from '../stores/common.js';
+import { BlockedError, loadHtml, nextData, toCents } from '../stores/common.ts';
 import { searchZoom } from '../stores/zoom.js';
 
 /** Busca na Kabum (página de busca, JSON embutido). Devolve anúncios com preço, sem filtro. */

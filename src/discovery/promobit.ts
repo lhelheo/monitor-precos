@@ -1,5 +1,5 @@
 import { fetchHtml, renderHtml } from '../http.js';
-import { BlockedError, findDeep, loadHtml, nextData, toCents } from '../stores/common.js';
+import { BlockedError, findDeep, loadHtml, nextData, toCents } from '../stores/common.ts';
 
 /**
  * Promobit: agregador de ofertas. A busca só funciona com a página renderizada no navegador;

@@ -1,5 +1,5 @@
 import { fetchHtml } from '../http.js';
-import { BlockedError, findDeep, loadHtml, nextData } from './common.js';
+import { BlockedError, findDeep, loadHtml, nextData } from './common.ts';
 
 /**
  * Zoom: comparador de preços. Não vende nada; mostra o menor preço encontrado e a loja que vende por ele.

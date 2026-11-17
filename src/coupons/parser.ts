@@ -1,4 +1,4 @@
-import { toCents } from '../stores/common.js';
+import { toCents } from '../stores/common.ts';
 
 /**
  * Parser de cupons em texto livre (página da loja, mensagens de canais de promoção, /cupom do bot).
@@ -7,8 +7,7 @@ import { toCents } from '../stores/common.js';
  *      "🎟️ Cupom GAMER15 — 15% OFF em games acima de R$ 200, só no app, até 23:59"
  */
 
-/** @type {[string, RegExp][]} */
-const STORE_PATTERNS = [
+const STORE_PATTERNS: [string, RegExp][] = [
   ['kabum', /kabum|kbum\.me/i],
   ['amazon', /amazon|amzn\.to|a\.co\//i],
   ['magalu', /magalu|magazine\s*luiza|magazineluiza|divulgador\.magalu/i],
@@ -52,8 +51,8 @@ export function parseValidity(text, ref = new Date()) {
   return null;
 }
 
-function parseAmounts(seg) {
-  const out = {};
+function parseAmounts(seg: string): any {
+  const out: any = {};
   const pct = seg.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%/);
   const fixed =
     seg.match(/R\$\s*([\d.]+(?:,\d{1,2})?)\s*(?:de\s+)?(?:off|desconto|de\s+volta)/i) ||
@@ -77,8 +76,8 @@ function parseAmounts(seg) {
   return out;
 }
 
-function parseConditions(seg) {
-  const c = {};
+function parseConditions(seg: string): any {
+  const c: any = {};
   if (/primeira\s+compra|1[ªa]\s+compra|novos?\s+clientes?/i.test(seg)) c.firstPurchase = true;
   if (/\bno\s+app\b|\bpelo\s+app\b|s[oó]\s+(?:no\s+)?app|aplicativo|\bapp\b/i.test(seg)) c.appOnly = true;
   if (/selecionad[oa]s|participantes|categorias?\s+selecionad/i.test(seg)) c.selectedItems = true;

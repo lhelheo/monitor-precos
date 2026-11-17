@@ -4,7 +4,7 @@ import { checkListing } from '../checker.js';
 import { normalizeUrl, storeFor } from '../stores/index.js';
 import { closeBrowser } from '../http.js';
 import { log } from '../log.js';
-import { fmt } from '../stores/common.js';
+import { fmt } from '../stores/common.ts';
 
 openDb();
 const arg = process.argv[2];

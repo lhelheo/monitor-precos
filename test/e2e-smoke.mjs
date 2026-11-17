@@ -4,8 +4,8 @@ import path from 'node:path';
 import os from 'node:os';
 import { openDb, closeDb, products, listings, coupons, prices } from '../src/db.js';
 import { scrape } from '../src/stores/index.js';
-import { ingestText } from '../src/coupons/ingest.js';
-import { effectivePrice } from '../src/pricing.js';
+import { ingestText } from '../src/coupons/ingest.ts';
+import { effectivePrice } from '../src/pricing.ts';
 import { closeBrowser } from '../src/http.js';
 
 const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mp-')), 'test.db');

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../config.js';
 import { log } from '../log.js';
-import { toCents } from '../stores/common.js';
+import { toCents } from '../stores/common.ts';
 
 /**
  * Extração de cupons com Claude (opcional — só roda se ANTHROPIC_API_KEY estiver definida).
