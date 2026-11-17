@@ -145,3 +145,27 @@ test('URLs: normalização e identificação de loja', () => {
   assert.equal(storeFor('https://www.kabum.com.br/produto/1032835/x')?.id, 'kabum');
   assert.equal(storeFor('https://exemplo.com/produto')?.id, undefined);
 });
+
+import { slugText, storeIdFromName, parseOffer } from '../src/discovery/promobit.js';
+
+test('Promobit: texto legível do endereço da oferta', () => {
+  assert.equal(slugText('https://www.promobit.com.br/oferta/controle-sem-fio-playstation-5-dualsense-branco-3200281/'), 'controle sem fio playstation 5 dualsense branco');
+});
+
+test('Promobit: nome de loja vira id interno', () => {
+  assert.equal(storeIdFromName('KaBuM!'), 'kabum');
+  assert.equal(storeIdFromName('Magazine Luiza'), 'magalu');
+  assert.equal(storeIdFromName('Mercado Livre'), 'mercadolivre');
+  assert.equal(storeIdFromName('Loja Desconhecida'), 'any');
+});
+
+test('Promobit: lê a oferta certa a partir dos dados embutidos', () => {
+  const data = { props: { pageProps: { outras: [{ offerId: 1, offerTitle: 'Outra', offerPrice: 10 }], oferta: { offerId: 3200281, offerTitle: 'Controle Branco', offerPrice: 322.05, offerOldPrice: 547.89, storeName: 'Shopee', offerStatusName: 'APPROVED', offerCoupon: null, offerPublished: '2026-11-11T12:11:15-0300' } } } };
+  const html = `<html><script id="__NEXT_DATA__" type="application/json">${JSON.stringify(data)}</script></html>`;
+  const o = parseOffer(html, 3200281);
+  assert.equal(o.title, 'Controle Branco');
+  assert.equal(o.priceCents, 32205);
+  assert.equal(o.oldCents, 54789);
+  assert.equal(o.store, 'Shopee');
+  assert.equal(parseOffer(html, 999), null);
+});

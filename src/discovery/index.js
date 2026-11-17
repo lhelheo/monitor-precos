@@ -5,6 +5,8 @@ import { formatDeal } from '../format.js';
 import { notify } from '../notifier.js';
 import { log } from '../log.js';
 import { searchKabum, searchPelando, searchZoom } from './sources.js';
+import { fetchOffer, searchPromobit, slugText, storeIdFromName } from './promobit.js';
+import { coupons } from '../db.js';
 import { fmt } from '../stores/common.js';
 
 // limite de anúncios descobertos por loja e por produto
@@ -38,7 +40,12 @@ export async function runSearchDiscovery() {
     const term = searchTerm(p.keywords);
     if (!term) continue;
     const sources = [
-      ['kabum', () => searchKabum(term)],
+      // a Kabum é sensível à ordem das palavras: se a busca vier vazia, tenta com as palavras invertidas
+      ['kabum', async () => {
+        const direct = await searchKabum(term);
+        if (direct.length) return direct;
+        return searchKabum(term.split(' ').reverse().join(' '));
+      }],
       ['zoom', () => searchZoom(term).then((items) => items.map((i) => ({ ...i, externalId: i.url.split('/').pop(), inStock: true })))],
     ];
     for (const [store, fetchItems] of sources) {
@@ -96,4 +103,74 @@ export async function runPelandoAlerts(send = notify) {
     }
   }
   if (first) kv.set('pelando_bootstrapped', '1');
+}
+
+/**
+ * Promobit: busca por produto no navegador e lê os detalhes de cada oferta nova.
+ * Avisa ofertas aprovadas, recentes, que batem com as palavras-chave e a faixa de preço.
+ * Na primeira execução só registra o que existe.
+ */
+export async function runPromobitAlerts(send = notify) {
+  if (!config.promobit.enabled) return;
+  const active = activeProducts();
+  if (!active.length) return;
+  const first = !kv.get('promobit_bootstrapped');
+  const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
+  const terms = [...new Set(active.map((p) => searchTerm(p.keywords)).filter(Boolean))];
+
+  for (const term of terms) {
+    let links;
+    try {
+      links = await searchPromobit(term);
+    } catch (e) {
+      log.warn(`Promobit "${term}": ${e.message}`);
+      continue;
+    }
+    for (const link of links) {
+      if (!active.some((p) => matchesKeywords(slugText(link.url), p.keywords))) continue;
+      if (seen.has('promobit', link.id)) continue;
+      let offer;
+      try {
+        offer = await fetchOffer(link.url, link.id);
+      } catch (e) {
+        log.warn(`Promobit oferta ${link.id}: ${e.message}`);
+        continue;
+      }
+      if (!offer) continue;
+      seen.markNew('promobit', link.id);
+      if (first) continue;
+      if (offer.status && offer.status !== 'APPROVED') continue;
+      const published = Date.parse(offer.published);
+      if (!Number.isNaN(published) && Date.now() - published > maxAgeMs) continue;
+
+      for (const p of active) {
+        if (!matchesKeywords(offer.title, p.keywords) || !inRange(p, offer.priceCents)) continue;
+        if (offer.coupon) {
+          // o Promobit não informa o valor do cupom aqui: fica como "sem valor identificado", só para aviso
+          coupons.upsert({
+            store: storeIdFromName(offer.store),
+            code: offer.coupon,
+            kind: 'fixed',
+            value: 0,
+            source: 'promobit',
+            confidence: 'unverified',
+            rawText: offer.title,
+          });
+        }
+        const html = formatDeal({
+          product: p,
+          text: `${offer.title}
+Loja: ${offer.store ?? '—'}${offer.coupon ? `
+Cupom: ${offer.coupon} (valor não informado)` : ''}`,
+          deal: { product: offer.title, finalCents: offer.priceCents },
+          coupons: [],
+          channel: 'Promobit',
+          link: link.url,
+        });
+        await send(html);
+        log.info(`Promobit: ${p.name} ← ${offer.title} por ${fmt(offer.priceCents)}`);
+      }
+    }
+  }
+  if (first) kv.set('promobit_bootstrapped', '1');
 }

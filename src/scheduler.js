@@ -2,7 +2,7 @@ import { config } from './config.js';
 import { coupons, listings } from './db.js';
 import { checkListing } from './checker.js';
 import { log } from './log.js';
-import { runPelandoAlerts, runSearchDiscovery } from './discovery/index.js';
+import { runPelandoAlerts, runSearchDiscovery, runPromobitAlerts } from './discovery/index.js';
 
 /**
  * Agendador simples e econômico (pensado para 1 vCPU):
@@ -40,6 +40,8 @@ export function startScheduler() {
   const searchTimer = setInterval(() => safe('Busca automática', runSearchDiscovery), 60 * 60_000);
   setTimeout(() => safe('Busca automática', runSearchDiscovery), 30_000);
   setTimeout(() => safe('Pelando', runPelandoAlerts), 20_000);
+  const promobitTimer = setInterval(() => safe('Promobit', runPromobitAlerts), config.promobit.intervalMin * 60_000);
+  setTimeout(() => safe('Promobit', runPromobitAlerts), 60_000);
   setTimeout(tick, 2000);
   log.info(
     `Agendador iniciado: intervalo padrão ${config.scheduler.defaultIntervalMin} min, ` +
@@ -53,6 +55,7 @@ export function startScheduler() {
       clearInterval(housekeeping);
       clearInterval(pelandoTimer);
       clearInterval(searchTimer);
+      clearInterval(promobitTimer);
     },
     get running() {
       return running.size;

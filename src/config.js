@@ -87,6 +87,11 @@ export const config = {
     amazonPrime: bool(process.env.USER_AMAZON_PRIME, false),
   },
 
+  promobit: {
+    enabled: bool(process.env.PROMOBIT_ENABLED, true),
+    intervalMin: num(process.env.PROMOBIT_INTERVAL_MIN, 30),
+    maxAgeHours: num(process.env.PROMOBIT_MAX_AGE_HOURS, 48),
+  },
   stores: loadStoreRules(),
   // Lojas ativas. MVP: só as que leem a página sem conta, afiliado ou verificação humana.
   // Para ativar outra loja depois, inclua o id dela aqui (mercadolivre, magalu, shopee).

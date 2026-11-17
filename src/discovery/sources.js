@@ -12,7 +12,7 @@ export async function searchKabum(term) {
   const seen = new Set();
   const walk = (o, d = 0) => {
     if (!o || typeof o !== 'object' || d > 14) return;
-    if (typeof o.code === 'number' && o.name && o.price !== undefined && o.priceWithDiscount !== undefined) {
+    if ((typeof o.code === 'number' || typeof o.code === 'string') && o.name && o.price !== undefined && o.priceWithDiscount !== undefined) {
       if (!seen.has(o.code)) {
         seen.add(o.code);
         out.push({

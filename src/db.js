@@ -339,6 +339,10 @@ export const kv = {
 
 // ---------- itens já vistos (para não avisar a mesma oferta duas vezes) ----------
 export const seen = {
+  /** já foi visto? */
+  has(source, externalId) {
+    return Boolean(openDb().prepare('SELECT 1 FROM seen_items WHERE source = ? AND external_id = ?').get(source, String(externalId)));
+  },
   /** true só na primeira vez que o item aparece */
   markNew(source, externalId) {
     const r = openDb()
