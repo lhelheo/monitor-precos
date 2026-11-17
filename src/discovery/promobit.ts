@@ -1,5 +1,5 @@
 import { fetchHtml, renderHtml } from '../http.ts';
-import { BlockedError, findDeep, loadHtml, nextData, toCents } from '../stores/common.ts';
+import { asString, BlockedError, findDeep, loadHtml, nextData, toCents } from '../stores/common.ts';
 
 /**
  * Promobit: agregador de ofertas. A busca só funciona com a página renderizada no navegador;
@@ -36,18 +36,30 @@ export function slugText(url: any) {
 }
 
 /** Dados de uma oferta, a partir da página da oferta. Exportado para testes. */
-export function parseOffer(html: any, offerId: any) {
+/** Dados de uma oferta do Promobit, já validados. */
+export interface PromobitOffer {
+  title: string;
+  priceCents: number | null;
+  oldCents: number | null;
+  store: string | null;
+  status: string | null;
+  coupon: string | null;
+  published: string | null;
+}
+
+/** Dados de uma oferta, a partir da página da oferta. Exportado para testes. */
+export function parseOffer(html: string, offerId: string | number): PromobitOffer | null {
   const nd = nextData(loadHtml(html));
-  const o = nd ? findDeep(nd.props, (x: any) => String(x.offerId) === String(offerId) && 'offerTitle' in x) : null;
+  const o = nd ? findDeep(nd.props, (x) => String(x.offerId) === String(offerId) && 'offerTitle' in x) : undefined;
   if (!o) return null;
   return {
-    title: o.offerTitle,
+    title: asString(o.offerTitle) ?? '',
     priceCents: toCents(o.offerPrice),
     oldCents: toCents(o.offerOldPrice),
-    store: o.storeName ?? null,
-    status: o.offerStatusName ?? null,
-    coupon: typeof o.offerCoupon === 'string' && o.offerCoupon ? o.offerCoupon : null,
-    published: o.offerPublished ?? null,
+    store: asString(o.storeName),
+    status: asString(o.offerStatusName),
+    coupon: asString(o.offerCoupon),
+    published: asString(o.offerPublished),
   };
 }
 

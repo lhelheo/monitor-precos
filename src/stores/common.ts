@@ -27,16 +27,19 @@ export function loadHtml(html: string): CheerioAPI {
   return cheerio.load(html);
 }
 
+/** Lista a partir de um valor que pode ser único ou já uma lista (como o JSON-LD aceita). */
+const asList = (v: unknown): unknown[] => (Array.isArray(v) ? v : [v]);
+
 /** Todos os objetos JSON-LD da página (achatando @graph e arrays). */
-export function jsonLd($: CheerioAPI): any[] {
-  const out: any[] = [];
+export function jsonLd($: CheerioAPI): Obj[] {
+  const out: Obj[] = [];
   $('script[type="application/ld+json"]').each((_, el) => {
     try {
-      const data = JSON.parse($(el).contents().text());
-      const stack = Array.isArray(data) ? [...data] : [data];
+      const data: unknown = JSON.parse($(el).contents().text());
+      const stack: unknown[] = Array.isArray(data) ? [...data] : [data];
       while (stack.length) {
         const o = stack.shift();
-        if (!o || typeof o !== 'object') continue;
+        if (!isRecord(o)) continue;
         if (Array.isArray(o['@graph'])) stack.push(...o['@graph']);
         out.push(o);
       }
@@ -47,22 +50,38 @@ export function jsonLd($: CheerioAPI): any[] {
   return out;
 }
 
+/** Dados de um Product do schema.org, já validados. */
+export interface JsonLdProduct {
+  title: string | null;
+  sku: unknown;
+  gtin: unknown;
+  priceCents: number | null;
+  inStock: boolean | null;
+  seller: string | null;
+}
+
 /** Extrai dados de um Product do schema.org, se houver. */
-export function productFromJsonLd($: CheerioAPI): any {
-  const p = jsonLd($).find((o) => ([] as any[]).concat(o['@type']).includes('Product'));
+export function productFromJsonLd($: CheerioAPI): JsonLdProduct | null {
+  const p = jsonLd($).find((o) => asList(o['@type']).includes('Product'));
   if (!p) return null;
-  const offers = ([] as any[]).concat(p.offers || []).flatMap((o) => (o?.['@type'] === 'AggregateOffer' ? [o, ...([] as any[]).concat(o.offers || [])] : [o]));
+  const offers: Obj[] = asList(p.offers || [])
+    .filter(isRecord)
+    .flatMap((o) => (o['@type'] === 'AggregateOffer' ? [o, ...asList(o.offers || []).filter(isRecord)] : [o]));
   const prices = offers
-    .map((o) => toCents(o?.price ?? o?.lowPrice ?? o?.priceSpecification?.price))
-    .filter((c) => c !== null && c > 0);
-  const availability = offers.map((o) => String(o?.availability || '')).join(' ');
+    .map((o) => {
+      const spec = isRecord(o.priceSpecification) ? o.priceSpecification.price : undefined;
+      return toCents(o.price ?? o.lowPrice ?? spec);
+    })
+    .filter((x): x is number => x !== null && x > 0);
+  const availability = offers.map((o) => String(o.availability || '')).join(' ');
+  const firstSeller = offers[0] && isRecord(offers[0].seller) ? offers[0].seller : undefined;
   return {
-    title: p.name || null,
+    title: asString(p.name),
     sku: p.sku || p.productID || null,
     gtin: p.gtin13 || p.gtin || p.gtin14 || p.gtin12 || null,
-    priceCents: prices.length ? Math.min(...(prices as number[])) : null,
+    priceCents: prices.length ? Math.min(...prices) : null,
     inStock: availability ? /InStock|LimitedAvailability|PreOrder/i.test(availability) : null,
-    seller: offers[0]?.seller?.name || null,
+    seller: firstSeller ? asString(firstSeller.name) : null,
   };
 }
 
@@ -78,13 +97,18 @@ export function nextData($: CheerioAPI): any {
 }
 
 /** Procura recursivamente o primeiro objeto que satisfaça o predicado. */
-export function findDeep(obj: any, pred: (o: any) => boolean, maxDepth = 12): any {
-  const seen = new Set();
-  const walk = (o: any, d: number): any => {
+/** Registro genérico vindo de JSON externo. */
+export type Obj = Record<string, unknown>;
+
+/** Procura recursivamente o primeiro objeto que satisfaça o predicado. */
+export function findDeep(obj: unknown, pred: (o: Obj) => boolean, maxDepth = 12): Obj | undefined {
+  const seen = new Set<unknown>();
+  const walk = (o: unknown, d: number): Obj | undefined => {
     if (!o || typeof o !== 'object' || d > maxDepth || seen.has(o)) return undefined;
     seen.add(o);
-    if (pred(o)) return o;
-    for (const v of Object.values(o)) {
+    const rec = o as Obj;
+    if (pred(rec)) return rec;
+    for (const v of Object.values(rec)) {
       const r = walk(v, d + 1);
       if (r) return r;
     }

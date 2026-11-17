@@ -67,7 +67,7 @@ export async function checkListing(listing: any, { silent = false } = {}) {
   if (changed || Date.now() - last.ts > HEARTBEAT_MS) {
     prices.insert({
       listingId: listing.id,
-      priceCents: scraped.priceCents,
+      priceCents: scraped.priceCents ?? null,
       pixCents: scraped.pixCents,
       listCents: scraped.listCents,
       effectiveCents,
@@ -81,7 +81,7 @@ export async function checkListing(listing: any, { silent = false } = {}) {
   listings.markOk(listing.id, {
     title: scraped.title,
     externalId: scraped.externalId,
-    priceCents: scraped.priceCents,
+    priceCents: scraped.priceCents ?? null,
     effectiveCents,
     inStock,
     nextCheckAt: nextCheck(listing),
@@ -89,7 +89,7 @@ export async function checkListing(listing: any, { silent = false } = {}) {
 
   if (changed) {
     log.info(
-      `#${listing.id} ${listing.store}: ${inStock ? '' : '(sem estoque) '}preço ${scraped.priceCents / 100} → efetivo ${effectiveCents / 100}` +
+      `#${listing.id} ${listing.store}: ${inStock ? '' : '(sem estoque) '}preço ${(scraped.priceCents ?? 0) / 100} → efetivo ${effectiveCents / 100}` +
         (eff?.breakdown.coupon ? ` [${eff.breakdown.coupon.label}]` : ''),
     );
   }

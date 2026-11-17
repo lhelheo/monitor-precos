@@ -16,7 +16,7 @@ export function parse(html: string) {
   const nd = nextData($);
   // Estrutura do Next.js da Magalu varia; procuramos um objeto de preço com "bestPrice"/"price"
   const priceObj = nd
-    ? findDeep(nd.props?.pageProps, (o: any) => o && typeof o === 'object' && ('bestPrice' in o || 'paymentMethodDescription' in o) && 'price' in o)
+    ? findDeep(nd.props?.pageProps, (o) => ('bestPrice' in o || 'paymentMethodDescription' in o) && 'price' in o)
     : null;
 
   const priceCents = toCents(priceObj?.price) ?? ld?.priceCents ?? metaPrice($);

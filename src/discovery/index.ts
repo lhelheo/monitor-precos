@@ -155,7 +155,7 @@ export async function runPromobitAlerts(send = notify) {
       seen.markNew('promobit', link.id);
       if (first) continue;
       if (offer.status && offer.status !== 'APPROVED') continue;
-      const published = Date.parse(offer.published);
+      const published = Date.parse(offer.published ?? '');
       if (!Number.isNaN(published) && Date.now() - published > maxAgeMs) continue;
 
       for (const p of active) {

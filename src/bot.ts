@@ -89,7 +89,7 @@ export function createBot() {
     const l = listings.get(lid);
     const r = await checkListing(l, { silent: true });
     if (!r.ok) return reply(ctx, `⚠️ Não consegui ler o anúncio: <code>${esc(r.error)}</code>\nVou tentar de novo automaticamente.`);
-    return reply(ctx, `Preço atual: <b>${fmt(r.eff.effectiveCents)}</b> (${esc(r.scraped.title?.slice(0, 80) ?? '')})`);
+    return reply(ctx, `Preço atual: <b>${fmt(r.eff.effectiveCents)}</b> (${esc(r.scraped?.title?.slice(0, 80) ?? '')})`);
   });
 
   bot.command('alvo', (ctx) => {

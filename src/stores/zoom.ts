@@ -1,6 +1,6 @@
 import { fetchHtml } from '../http.ts';
 import type { CouponInput } from '../types.ts';
-import { BlockedError, findDeep, loadHtml, nextData } from './common.ts';
+import { asString, BlockedError, findDeep, isRecord, loadHtml, nextData, type Obj } from './common.ts';
 
 /**
  * Zoom: comparador de preços. Não vende nada; mostra o menor preço encontrado e a loja que vende por ele.
@@ -12,50 +12,52 @@ export const name = 'Zoom (comparador)';
 export const match = (u: string) => /(^|\.)zoom\.com\.br$/i.test(new URL(u).hostname);
 export const externalId = (u: string) => new URL(u).pathname.split('/').filter(Boolean).pop() ?? null;
 
-const cents = (v: unknown) => (typeof v === 'number' && v > 0 ? Math.round(v * 100) : null);
+const cents = (v: unknown): number | null => (typeof v === 'number' && v > 0 ? Math.round(v * 100) : null);
 
 /** Dados do produto a partir da página do Zoom (JSON embutido). Exportado para testes. */
 export function parse(html: string, slug: string | null = null) {
   const nd = nextData(loadHtml(html));
-  const p = nd ? findDeep(nd.props, (o: any) => o.bestOffer && typeof o.price === 'number' && o.name && (!slug || o.seoUrl === slug)) : null;
+  const p = nd
+    ? findDeep(nd.props, (o) => isRecord(o.bestOffer) && typeof o.price === 'number' && Boolean(o.name) && (!slug || o.seoUrl === slug))
+    : undefined;
   if (!p) return null;
+  const bestOffer: Obj = isRecord(p.bestOffer) ? p.bestOffer : {};
   return {
-    title: p.name,
+    title: asString(p.name),
     priceCents: cents(p.price),
     pixCents: null as number | null,
     listCents: null as number | null,
     inStock: true,
-    seller: p.bestOffer?.merchantName ?? null,
+    seller: asString(bestOffer.merchantName),
     pageCoupons: [] as CouponInput[],
   };
 }
 
+export type ZoomSearchItem = { url: string; title: string; priceCents: number | null; seller: string | null };
+
 /** Resultados de busca do Zoom. Exportado para descoberta automática. */
-export function parseSearch(html: string) {
+export function parseSearch(html: string): ZoomSearchItem[] {
   const nd = nextData(loadHtml(html));
-  const seen = new Set();
-  const out: any[] = [];
-  const walk = (o: any, d = 0) => {
+  const seen = new Set<string>();
+  const out: ZoomSearchItem[] = [];
+  const walk = (o: unknown, d = 0): void => {
     if (!o || typeof o !== 'object' || d > 14) return;
-    if (o.name && o.seoUrl && o.categorySeoUrl && typeof o.price === 'number' && o.bestOffer) {
-      const url = `https://www.zoom.com.br/${o.categorySeoUrl}/${o.seoUrl}`;
+    const rec = o as Obj;
+    if (rec.name && rec.seoUrl && rec.categorySeoUrl && typeof rec.price === 'number' && rec.bestOffer) {
+      const url = `https://www.zoom.com.br/${String(rec.categorySeoUrl)}/${String(rec.seoUrl)}`;
       if (!seen.has(url)) {
         seen.add(url);
-        out.push({
-          url,
-          title: o.name,
-          priceCents: cents(o.price),
-          seller: o.bestOffer.merchantName ?? null,
-        });
+        const offer: Obj = isRecord(rec.bestOffer) ? rec.bestOffer : {};
+        out.push({ url, title: String(rec.name), priceCents: cents(rec.price), seller: asString(offer.merchantName) });
       }
     }
-    for (const v of Object.values(o)) walk(v, d + 1);
+    for (const v of Object.values(rec)) walk(v, d + 1);
   };
   walk(nd?.props);
   return out;
 }
 
-export async function searchZoom(term: string) {
+export async function searchZoom(term: string): Promise<ZoomSearchItem[]> {
   const r = await fetchHtml(`https://www.zoom.com.br/search?q=${encodeURIComponent(term)}`);
   if (r.status !== 200) throw new BlockedError(id, `busca HTTP ${r.status}`);
   return parseSearch(r.html);

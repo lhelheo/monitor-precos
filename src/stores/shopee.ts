@@ -1,6 +1,6 @@
 import { renderHtml } from '../http.ts';
 import type { CouponInput } from '../types.ts';
-import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.ts';
+import { asString, BlockedError, cleanText, isRecord, loadHtml, productFromJsonLd, type Obj } from './common.ts';
 
 export const id = 'shopee';
 export const name = 'Shopee';
@@ -18,30 +18,33 @@ export const externalId = (u: string) => {
 };
 
 // Preços na API interna da Shopee vêm multiplicados por 100000
-const shopeeCents = (v: unknown) => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
+const shopeeCents = (v: unknown): number | null => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
 
 /** Interpreta a resposta da API interna da página de produto (pdp). Exportado para testes. */
-export function parseApi(json: any) {
-  const item = json?.data?.item || json?.data;
-  if (!item || (item.price === undefined && item.price_min === undefined)) return null;
+export function parseApi(json: unknown) {
+  const root: Obj = isRecord(json) ? json : {};
+  const data: Obj = isRecord(root.data) ? root.data : {};
+  const item: Obj = isRecord(data.item) ? data.item : data;
+  if (item.price === undefined && item.price_min === undefined) return null;
   const priceCents = shopeeCents(item.price) ?? shopeeCents(item.price_min);
   const before = shopeeCents(item.price_before_discount) ?? shopeeCents(item.price_min_before_discount);
-  const stock = item.stock ?? item.normal_stock ?? json?.data?.product_meta?.stock;
+  const meta: Obj = isRecord(data.product_meta) ? data.product_meta : {};
+  const stock = item.stock ?? item.normal_stock ?? meta.stock;
+  const shop: Obj = isRecord(data.shop_detailed) ? data.shop_detailed : {};
   return {
-    title: item.title || item.name || null,
+    title: asString(item.title) ?? asString(item.name),
     priceCents,
     pixCents: null as number | null,
     listCents: before && before > (priceCents ?? 0) ? before : null,
-    inStock: stock === undefined ? true : stock > 0,
-    seller: json?.data?.shop_detailed?.name || null,
+    inStock: stock === undefined ? true : Number(stock) > 0,
+    seller: asString(shop.name),
     pageCoupons: [] as CouponInput[],
   };
 }
 
 export async function scrape(url: string) {
   // A Shopee monta a página via API interna assinada; capturamos a resposta dela no navegador.
-  /** @type {any} */
-  let apiData: any = null;
+  let apiData = null as ReturnType<typeof parseApi>;
   const r = await renderHtml(url, {
     waitMs: 6000,
     onResponse: async (res) => {
