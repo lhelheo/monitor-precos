@@ -26,6 +26,7 @@ function backoff(listing: any, err: any, now = Date.now()) {
 /** Verifica um anúncio: coleta, calcula preço efetivo, grava histórico e dispara alertas. */
 export async function checkListing(listing: any, { silent = false } = {}) {
   const product = products.get(listing.product_id);
+  if (!product) throw new Error(`produto ${listing.product_id} não existe`);
   const startedAt = Date.now();
   let scraped;
   try {

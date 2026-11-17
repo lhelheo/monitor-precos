@@ -12,7 +12,7 @@ import { runPelandoAlerts, runSearchDiscovery, runPromobitAlerts } from './disco
  */
 export function startScheduler() {
   const lastHitByStore = new Map();
-  const running = new Set();
+  const running = new Set<number>();
   let stopped = false;
 
   async function tick() {
