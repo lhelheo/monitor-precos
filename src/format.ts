@@ -1,20 +1,36 @@
 import { config } from './config.ts';
-import { REASON_LABEL } from './alerts.ts';
+import { REASON_LABEL, type PriceStats } from './alerts.ts';
+import type { effectivePrice } from './pricing.ts';
+import type { Confidence, ListingRow, ProductRow, ScrapedPage } from './types.ts';
 import { fmt } from './stores/common.ts';
 import { STORES } from './stores/index.ts';
 
-export const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' } as Record<string, string>)[c]);
+export const esc = (s: unknown) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' } as Record<string, string>)[c]);
 
 const CONF: Record<string, string> = { confirmed: '🟢 confirmado', probable: '🟡 provável', unverified: '⚪ não verificado' };
 
 /** Mensagem de alerta (HTML do Telegram). */
-export function formatAlert({ product, listing, scraped, eff, reasons, statsAll }: any) {
+export function formatAlert({
+  product,
+  listing,
+  scraped,
+  eff,
+  reasons,
+  statsAll,
+}: {
+  product: ProductRow;
+  listing: ListingRow;
+  scraped: ScrapedPage;
+  eff: NonNullable<ReturnType<typeof effectivePrice>>;
+  reasons: string[];
+  statsAll: PriceStats;
+}) {
   const b = eff.breakdown;
   const lines = [
     `🔥 <b>${esc(product.name)}</b>`,
     `${STORES[listing.store]?.name ?? listing.store}: <b>${fmt(eff.effectiveCents)}</b> ${b.coupon ? `(${CONF[eff.confidence]})` : ''}`,
     '',
-    reasons.map((r: any) => REASON_LABEL[r] ?? r).join('\n'),
+    reasons.map((r: string) => REASON_LABEL[r] ?? r).join('\n'),
     '',
     `💳 Preço: ${fmt(b.priceCents)}${scraped.listCents ? ` <s>${fmt(scraped.listCents)}</s>` : ''}`,
   ];
@@ -36,7 +52,14 @@ export function formatAlert({ product, listing, scraped, eff, reasons, statsAll 
  * Mensagem de canal de promoção que menciona um produto monitorado.
  * @param {{ product: any, text: string, deal: any, coupons: any[], channel: string, link?: string }} args
  */
-export function formatDeal(args: any) {
+export function formatDeal(args: {
+  product: ProductRow;
+  text: string;
+  deal: { product?: string; finalCents?: number | null } | null;
+  coupons: Array<{ code?: string | null; confidence: Confidence }>;
+  channel: string;
+  link?: string;
+}) {
   const { product, text, deal, coupons, channel, link } = args;
   const lines = [`📣 <b>${esc(product.name)}</b> apareceu em <b>${esc(channel)}</b>`];
   if (deal?.finalCents) lines.push(`Preço anunciado: <b>${fmt(deal.finalCents)}</b>${product.target_cents ? ` (alvo ${fmt(product.target_cents)})` : ''}`);

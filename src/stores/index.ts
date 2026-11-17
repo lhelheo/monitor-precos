@@ -4,6 +4,7 @@ import * as mercadolivre from './mercadolivre.ts';
 import * as magalu from './magalu.ts';
 import * as shopee from './shopee.ts';
 import * as zoom from './zoom.ts';
+import type { ScrapedPage } from '../types.ts';
 import { config } from '../config.ts';
 
 const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee, zoom };
@@ -37,9 +38,10 @@ export function normalizeUrl(url: string) {
  * Coleta dados de um anúncio. Resultado normalizado:
  * { title, priceCents, pixCents, listCents, inStock, seller, pageCoupons[], externalId }
  */
-export async function scrape(url: string) {
+export async function scrape(url: string): Promise<ScrapedPage & { store: string }> {
   const store = storeFor(url);
   if (!store) throw new Error(`Loja não suportada: ${url}`);
-  const data = await store.scrape(url);
+  // os coletores lançam erro (não devolvem "bloqueado") quando não há dados: aqui o resultado já é válido
+  const data = (await store.scrape(url)) as ScrapedPage;
   return { store: store.id, ...data };
 }

@@ -90,7 +90,7 @@ export function createBot() {
     if (!l) return reply(ctx, 'Anúncio não encontrado.');
     const r = await checkListing(l, { silent: true });
     if (!r.ok) return reply(ctx, `⚠️ Não consegui ler o anúncio: <code>${esc(r.error)}</code>\nVou tentar de novo automaticamente.`);
-    return reply(ctx, `Preço atual: <b>${fmt(r.eff.effectiveCents)}</b> (${esc(r.scraped?.title?.slice(0, 80) ?? '')})`);
+    return reply(ctx, `Preço atual: <b>${fmt(r.eff?.effectiveCents ?? null)}</b> (${esc(r.scraped?.title?.slice(0, 80) ?? '')})`);
   });
 
   bot.command('alvo', (ctx) => {
@@ -152,7 +152,7 @@ export function createBot() {
     await reply(ctx, `Verificando ${ls.length} anúncio(s)…`);
     for (const l of ls) {
       const r = await checkListing(l, { silent: true });
-      const msg = r.ok ? `${STORES[l.store]?.name}: <b>${fmt(r.eff.effectiveCents)}</b>` : `${STORES[l.store]?.name}: erro ${esc(r.error)}`;
+      const msg = r.ok ? `${STORES[l.store]?.name}: <b>${fmt(r.eff?.effectiveCents ?? null)}</b>` : `${STORES[l.store]?.name}: erro ${esc(r.error)}`;
       await reply(ctx, msg);
     }
   });

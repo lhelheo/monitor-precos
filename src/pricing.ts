@@ -14,12 +14,12 @@ const norm = (s: unknown): string =>
 
 /**
  * Motivo pelo qual um cupom não se aplica (ou null se aplica).
- * @param {any} coupon
+ * @param {PriceCoupon} coupon
  * @param {{ priceCents: number, title?: any, user?: { firstPurchase?: boolean, amazonPrime?: boolean } }} options
  */
 export function couponBlocker(
-  coupon: any,
-  options: { priceCents: number; title?: any; user?: { firstPurchase?: boolean; amazonPrime?: boolean } },
+  coupon: PriceCoupon,
+  options: { priceCents: number; title?: string | null; user?: { firstPurchase?: boolean; amazonPrime?: boolean } },
 ): string | null {
   const { priceCents, title, user = config.user } = options;
   if (!coupon.kind || !coupon.value) return 'sem valor conhecido';
@@ -27,7 +27,7 @@ export function couponBlocker(
   if (coupon.minCents && priceCents < coupon.minCents) return 'abaixo do valor mínimo';
   if (coupon.keywords?.length) {
     const t = norm(title);
-    if (!coupon.keywords.some((k: any) => t.includes(norm(k)))) return 'categoria/produto diferente';
+    if (!coupon.keywords.some((k: string) => t.includes(norm(k)))) return 'categoria/produto diferente';
   }
   return null;
 }
@@ -52,12 +52,12 @@ export function couponDiscount(coupon: PriceCoupon, baseCents: number): number {
  * @returns {import('./types.ts').EffectiveResult | null}
  */
 export function effectivePrice(
-  scraped: any,
-  coupons: any[] = [],
+  scraped: ScrapedPage,
+  coupons: PriceCoupon[] = [],
   options: { minConfidence?: string; user?: { firstPurchase?: boolean; amazonPrime?: boolean }; rules?: any } = {},
-): any {
+) {
   const { minConfidence = 'probable', user = config.user, rules } = options;
-  const r = rules ?? config.stores[scraped.store] ?? {};
+  const r = rules ?? config.stores[scraped.store ?? ''] ?? {};
   const price = scraped.priceCents;
   if (!price) return null;
 
@@ -94,7 +94,7 @@ export function effectivePrice(
     .map((e) => ({
       code: e.coupon.code,
       label: couponLabel(e.coupon),
-      confidence: e.coupon.confidence,
+      confidence: e.coupon.confidence ?? 'unverified',
       blocker: e.blocker || (RANK[e.coupon.confidence ?? 'unverified'] < RANK[minConfidence] ? 'confiança baixa' : null),
       wouldBeCents: base - couponDiscount(e.coupon, base),
     }))
@@ -102,7 +102,7 @@ export function effectivePrice(
 
   return {
     effectiveCents: effective,
-    confidence: best ? best.coupon.confidence : 'confirmed',
+    confidence: best ? (best.coupon.confidence ?? 'unverified') : 'confirmed',
     breakdown: {
       priceCents: price,
       baseCents: base,

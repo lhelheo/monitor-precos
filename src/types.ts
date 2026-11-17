@@ -31,7 +31,7 @@ export interface CouponInput {
   keywords?: string[];
   validUntil?: number | null;
   confidence?: Confidence;
-  rawText?: string;
+  rawText?: string | null;
   source?: string;
 }
 

@@ -1,13 +1,13 @@
 import { log } from './log.ts';
 
 /** Canal de saída das notificações. O bot do Telegram registra o envio aqui ao iniciar. */
-let sender: any = null;
+let sender: ((html: string, opts?: { disablePreview?: boolean }) => Promise<unknown>) | null = null;
 
-export function setSender(fn: any) {
+export function setSender(fn: ((html: string, opts?: { disablePreview?: boolean }) => Promise<unknown>) | null) {
   sender = fn;
 }
 
-export async function notify(html: any, opts = {}) {
+export async function notify(html: string, opts: { disablePreview?: boolean } = {}) {
   if (!sender) {
     log.info(`[notificação] ${html.replace(/<[^>]+>/g, '')}`);
     return false;
@@ -15,8 +15,8 @@ export async function notify(html: any, opts = {}) {
   try {
     await sender(html, opts);
     return true;
-  } catch (e: any) {
-    log.error(`Falha ao enviar notificação: ${e.message}`);
+  } catch (e) {
+    log.error(`Falha ao enviar notificação: ${(e as Error).message}`);
     return false;
   }
 }

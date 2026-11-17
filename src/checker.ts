@@ -90,15 +90,15 @@ export async function checkListing(listing: ListingRow, { silent = false }: { si
 
   if (changed) {
     log.info(
-      `#${listing.id} ${listing.store}: ${inStock ? '' : '(sem estoque) '}preço ${(scraped.priceCents ?? 0) / 100} → efetivo ${effectiveCents / 100}` +
+      `#${listing.id} ${listing.store}: ${inStock ? '' : '(sem estoque) '}preço ${(scraped.priceCents ?? 0) / 100} → efetivo ${(effectiveCents ?? 0) / 100}` +
         (eff?.breakdown.coupon ? ` [${eff.breakdown.coupon.label}]` : ''),
     );
   }
 
   const reasons = alertReasons({ product, effectiveCents, inStock, statsAll, statsWindow });
   let notified = false;
-  if (reasons.length && !silent && shouldNotify({ productId: product.id, effectiveCents })) {
-    alerts.insert({ productId: product.id, listingId: listing.id, effectiveCents, reasons });
+  if (eff && reasons.length && !silent && shouldNotify({ productId: product.id, effectiveCents })) {
+    alerts.insert({ productId: product.id, listingId: listing.id, effectiveCents: eff.effectiveCents, reasons });
     await notify(formatAlert({ product, listing, scraped, eff, reasons, statsAll }), { disablePreview: false });
     notified = true;
   }
