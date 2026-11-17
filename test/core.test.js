@@ -12,6 +12,7 @@ import { parseApi as parseShopee } from '../src/stores/shopee.ts';
 import { normalizeUrl, storeFor } from '../src/stores/index.ts';
 import { matchesKeywords, withinRange } from '../src/coupons/ingest.ts';
 import { alertReasons } from '../src/alerts.ts';
+import { isOfferMessage, messageLink, offerKey } from '../src/coupons/offers.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixture = (n) => fs.readFileSync(path.join(here, 'fixtures', n), 'utf8');
@@ -87,6 +88,27 @@ test('faixa de preço: mensagem de canal fora da faixa não passa; sem preço pa
   assert.equal(withinRange(p, 450000), false);
   assert.equal(withinRange(p, null), true);
   assert.equal(withinRange({ price_min_cents: null, price_max_cents: null }, 173600), true);
+});
+
+test('grupos: conversa comum fica de fora; oferta com preço, cupom ou loja passa', () => {
+  assert.equal(isOfferMessage('bom dia pessoal, alguém já comprou o controle?'), false);
+  assert.equal(isOfferMessage('Controle DualSense por R$ 349,90'), true);
+  assert.equal(isOfferMessage('cupom DUALSENSE10 válido hoje'), true);
+  assert.equal(isOfferMessage('https://www.amazon.com.br/dp/B0HMX7CTSY'), true);
+});
+
+test('grupos: link de mensagem para canal público e para grupo privado', () => {
+  assert.equal(messageLink('ofertas_ps', null, 42), 'https://t.me/ofertas_ps/42');
+  assert.equal(messageLink(undefined, '-1001234567890', 7), 'https://t.me/c/1234567890/7');
+  assert.equal(messageLink(undefined, '-987654', 7), 'https://t.me/c/987654/7');
+  assert.equal(messageLink(undefined, null, 7), null);
+});
+
+test('grupos: mesma oferta do mesmo produto vira uma só chave por dia', () => {
+  const a = offerKey(3, 34990, 'texto do grupo A', '2026-11-17');
+  assert.equal(a, offerKey(3, 34990, 'texto diferente do grupo B', '2026-11-17'));
+  assert.notEqual(a, offerKey(3, 34990, 'x', '2026-11-18'));
+  assert.notEqual(a, offerKey(3, 39990, 'x', '2026-11-17'));
 });
 
 test('cupom de confiança baixa não entra no preço efetivo quando minConfidence=confirmed', () => {

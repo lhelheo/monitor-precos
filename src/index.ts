@@ -1,5 +1,6 @@
 import { config } from './config.ts';
-import { openDb, closeDb } from './db.ts';
+import { openDb, closeDb, seen } from './db.ts';
+import { offerKey } from './coupons/offers.ts';
 import { log } from './log.ts';
 import { startScheduler } from './scheduler.ts';
 import { createBot } from './bot.ts';
@@ -25,6 +26,9 @@ const web = await startWeb().catch((e: unknown) => {
 const scheduler = startScheduler();
 
 const promo = await startPromoListener(async ({ product, text, deal, coupons, channel, link }) => {
+  // a mesma oferta pode circular em vários grupos: avisa uma vez por dia
+  const day = new Date().toISOString().slice(0, 10);
+  if (!seen.markNew('offer', offerKey(product.id, deal?.finalCents ?? null, text, day))) return;
   await notify(formatDeal({ product, text, deal, coupons, channel, link }));
 }).catch((e: unknown) => {
   log.error(`Leitor de canais não iniciou: ${(e as Error).message}`);

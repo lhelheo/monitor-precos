@@ -8,7 +8,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const src = path.join(here, '..', 'src');
 // index.js e as CLIs iniciam o sistema ao carregar; ficam de fora
-const SKIP = new Set(['index.js', 'index.ts', 'telegram-login.js', 'telegram-login.ts', 'check.js', 'check.ts']);
+const SKIP = new Set([
+  'index.js', 'index.ts', 'telegram-login.js', 'telegram-login.ts', 'telegram-chats.js', 'telegram-chats.ts', 'check.js', 'check.ts',
+]);
 
 function listar(dir) {
   return readdirSync(dir).flatMap((f) => {

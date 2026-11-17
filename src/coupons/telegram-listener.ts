@@ -7,6 +7,13 @@ import { NewMessage } from 'telegram/events/index.js';
 import { config } from '../config.ts';
 import { log } from '../log.ts';
 import { ingestText } from './ingest.ts';
+import { isOfferMessage, messageLink } from './offers.ts';
+
+/** Conversa do Telegram (canal, grupo ou privada) vista pela conta. */
+interface Dialog {
+  id?: { toString(): string };
+  entity?: { username?: string };
+}
 
 /**
  * Lê canais públicos de promoção do Telegram (ex.: canais de ofertas/cupons) usando a SUA conta
@@ -34,12 +41,24 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
   client.setLogLevel('error' as Parameters<typeof client.setLogLevel>[0]);
   await client.connect();
 
-  const entities = [];
+  // grupos privados não têm @nome: são localizados pelo ID entre as suas conversas (ver npm run telegram:chats)
+  const dialogs = (await client.getDialogs({ limit: 1000 }).catch(() => [])) as unknown as Dialog[];
+  // identificador aceito pelo filtro de mensagens (NewMessage chats)
+  type Chat = NonNullable<NonNullable<ConstructorParameters<typeof NewMessage>[0]>['chats']>[number];
+  const entities: Array<{ id: Chat }> = [];
   for (const ch of channels) {
-    try {
-      entities.push(await client.getEntity(ch));
-    } catch (e) {
-      log.warn(`Canal ${ch} não encontrado: ${(e as Error).message}`);
+    const ref = ch.replace(/^@/, '');
+    const found = dialogs.find((d) => d.id?.toString() === ref || (d.entity?.username ?? '').toLowerCase() === ref.toLowerCase());
+    if (found?.entity) {
+      entities.push(found.entity as unknown as { id: Chat });
+    } else if (/^-?\d+$/.test(ref)) {
+      log.warn(`Grupo ${ch} não está entre as suas conversas do Telegram`);
+    } else {
+      try {
+        entities.push((await client.getEntity(ref)) as unknown as { id: Chat });
+      } catch (e) {
+        log.warn(`Canal ${ch} não encontrado: ${(e as Error).message}`);
+      }
     }
   }
   if (!entities.length) {
@@ -51,13 +70,14 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
     async (event) => {
       const msg = event.message;
       const text = msg?.message;
-      if (!text) return;
-      const chat = (await msg.getChat().catch((): null => null)) as unknown as { username?: string; title?: string } | null;
+      // conversa comum de grupo (sem preço, cupom nem link de loja) nem é analisada
+      if (!text || !isOfferMessage(text)) return;
+      const chat = (await msg.getChat().catch((): null => null)) as unknown as { id?: { toString(): string }; username?: string; title?: string } | null;
       const channel = chat?.username || chat?.title || 'canal';
       try {
         const r = await ingestText(text, { source: 'telegram', origin: channel });
         if (r.coupons.length) log.info(`Canal ${channel}: ${r.coupons.length} cupom(ns) salvos (${r.coupons.map((c) => c.code).join(', ')})`);
-        const link = chat?.username ? `https://t.me/${chat.username}/${msg.id}` : null;
+        const link = messageLink(chat?.username, chat?.id?.toString(), msg.id);
         for (const product of r.matchedProducts) {
           await onMatch?.({ product, text, deal: r.deal, coupons: r.coupons, channel, link });
         }

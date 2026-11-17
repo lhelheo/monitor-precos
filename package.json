@@ -11,6 +11,7 @@
     "start": "node src/index.ts",
     "check": "node src/cli/check.ts",
     "telegram:login": "node src/cli/telegram-login.ts",
+    "telegram:chats": "node src/cli/telegram-chats.ts",
     "test": "node --test test/core.test.js test/db.test.js test/imports.test.js",
     "dev": "node --watch src/index.ts",
     "typecheck": "tsc -p tsconfig.json"

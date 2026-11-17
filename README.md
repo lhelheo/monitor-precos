@@ -29,6 +29,8 @@ Em `.env`, `USER_FIRST_PURCHASE=true` libera os cupons de primeira compra no cá
 
 A faixa de preço do produto (`/faixa`) vale também para as mensagens dos canais de promoção: se o preço anunciado estiver fora dela, o aviso não é enviado. Mensagens sem preço legível continuam sendo avisadas.
 
+**Grupos e canais do Telegram:** em `TELEGRAM_PROMO_CHANNELS` você pode colocar grupos privados pelo ID, além de canais por @nome. Para listar os seus grupos com o ID de cada um, rode `npm run telegram:chats`. Mensagens de conversa comum (sem preço, cupom ou link de loja) são ignoradas, e a mesma oferta vinda de vários grupos é avisada uma vez por dia.
+
 ## Rodando
 
 Local (Node 22.13+ ou 24):
