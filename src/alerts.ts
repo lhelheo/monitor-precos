@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { alerts, prices } from './db.js';
+import { config } from './config.ts';
+import { alerts, prices } from './db.ts';
 
 /**
  * Decide se um novo preço merece alerta. `statsBefore` são estatísticas calculadas ANTES de gravar o ponto novo.

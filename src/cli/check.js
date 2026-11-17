@@ -1,9 +1,9 @@
 // Verifica todos os anúncios agora, sem bot nem agendador: `npm run check [-- <url>]`
-import { openDb, closeDb, listings, products } from '../db.js';
+import { openDb, closeDb, listings, products } from '../db.ts';
 import { checkListing } from '../checker.js';
 import { normalizeUrl, storeFor } from '../stores/index.ts';
 import { closeBrowser } from '../http.ts';
-import { log } from '../log.js';
+import { log } from '../log.ts';
 import { fmt } from '../stores/common.ts';
 
 openDb();

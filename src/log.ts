@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config } from './config.ts';
 
 const LEVELS = { debug: 10, info: 20, warn: 30, error: 40 };
 const min = LEVELS[config.logLevel] ?? 20;

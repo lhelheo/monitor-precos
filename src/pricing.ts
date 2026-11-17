@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config } from './config.ts';
 
 const RANK = { confirmed: 3, probable: 2, unverified: 1 };
 

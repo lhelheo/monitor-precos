@@ -1,12 +1,12 @@
-import { config } from './config.js';
-import { openDb, closeDb } from './db.js';
-import { log } from './log.js';
+import { config } from './config.ts';
+import { openDb, closeDb } from './db.ts';
+import { log } from './log.ts';
 import { startScheduler } from './scheduler.js';
 import { createBot } from './bot.js';
 import { startWeb } from './web/server.js';
 import { startPromoListener } from './coupons/telegram-listener.js';
-import { formatDeal } from './format.js';
-import { notify } from './notifier.js';
+import { formatDeal } from './format.ts';
+import { notify } from './notifier.ts';
 import { closeBrowser } from './http.ts';
 
 openDb();

@@ -1,12 +1,12 @@
-import { config } from './config.js';
-import { coupons, listings, prices, products, alerts } from './db.js';
+import { config } from './config.ts';
+import { coupons, listings, prices, products, alerts } from './db.ts';
 import { effectivePrice } from './pricing.ts';
 import { alertReasons, shouldNotify, statsFor } from './alerts.ts';
 import { scrape, STORES } from './stores/index.ts';
 import { BlockedError } from './stores/common.ts';
-import { esc, formatAlert } from './format.js';
-import { notify } from './notifier.js';
-import { log } from './log.js';
+import { esc, formatAlert } from './format.ts';
+import { notify } from './notifier.ts';
+import { log } from './log.ts';
 
 const HEARTBEAT_MS = 6 * 3600_000; // grava ponto mesmo sem mudança a cada 6h (gráfico contínuo)
 

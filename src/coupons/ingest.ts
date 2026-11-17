@@ -1,5 +1,5 @@
-import { coupons, products } from '../db.js';
-import { log } from '../log.js';
+import { coupons, products } from '../db.ts';
+import { log } from '../log.ts';
 import { STORES } from '../stores/index.ts';
 import { detectStore, parseAnnouncedPrice, parseCoupons } from './parser.ts';
 import { extractWithLlm, llmEnabled } from './llm.js';

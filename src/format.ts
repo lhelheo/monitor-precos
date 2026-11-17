@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config } from './config.ts';
 import { REASON_LABEL } from './alerts.ts';
 import { fmt } from './stores/common.ts';
 import { STORES } from './stores/index.ts';

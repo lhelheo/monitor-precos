@@ -1,12 +1,12 @@
-import { config } from '../config.js';
-import { kv, listings, products, seen } from '../db.js';
+import { config } from '../config.ts';
+import { kv, listings, products, seen } from '../db.ts';
 import { matchesKeywords } from '../coupons/ingest.ts';
-import { formatDeal } from '../format.js';
-import { notify } from '../notifier.js';
-import { log } from '../log.js';
+import { formatDeal } from '../format.ts';
+import { notify } from '../notifier.ts';
+import { log } from '../log.ts';
 import { searchKabum, searchPelando, searchZoom } from './sources.js';
 import { fetchOffer, searchPromobit, slugText, storeIdFromName } from './promobit.ts';
-import { coupons } from '../db.js';
+import { coupons } from '../db.ts';
 import { fmt } from '../stores/common.ts';
 
 // limite de anúncios descobertos por loja e por produto

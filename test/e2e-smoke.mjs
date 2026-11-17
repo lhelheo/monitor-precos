@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { openDb, closeDb, products, listings, coupons, prices } from '../src/db.js';
+import { openDb, closeDb, products, listings, coupons, prices } from '../src/db.ts';
 import { scrape } from '../src/stores/index.ts';
 import { ingestText } from '../src/coupons/ingest.ts';
 import { effectivePrice } from '../src/pricing.ts';

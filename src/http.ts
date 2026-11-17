@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { log } from './log.js';
+import { config } from './config.ts';
+import { log } from './log.ts';
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';

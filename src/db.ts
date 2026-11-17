@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
+import { config } from './config.ts';
 
 /**
  * Valores monetários são guardados em centavos (inteiros) para evitar erros de ponto flutuante.

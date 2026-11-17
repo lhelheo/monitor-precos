@@ -1,8 +1,8 @@
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions/index.js';
 import { NewMessage } from 'telegram/events/index.js';
-import { config } from '../config.js';
-import { log } from '../log.js';
+import { config } from '../config.ts';
+import { log } from '../log.ts';
 import { ingestText } from './ingest.ts';
 
 /**

@@ -4,7 +4,7 @@ import * as mercadolivre from './mercadolivre.ts';
 import * as magalu from './magalu.ts';
 import * as shopee from './shopee.ts';
 import * as zoom from './zoom.ts';
-import { config } from '../config.js';
+import { config } from '../config.ts';
 
 const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee, zoom };
 // Só lojas habilitadas em config.enabledStores são aceitas (inclusive no bot)

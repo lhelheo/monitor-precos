@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { config } from '../config.js';
-import { log } from '../log.js';
+import { config } from '../config.ts';
+import { log } from '../log.ts';
 import { toCents } from '../stores/common.ts';
 
 /**

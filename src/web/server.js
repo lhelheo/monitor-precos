@@ -2,9 +2,9 @@ import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import basicAuth from '@fastify/basic-auth';
 import path from 'node:path';
-import { config } from '../config.js';
-import { listings, prices, products } from '../db.js';
-import { log } from '../log.js';
+import { config } from '../config.ts';
+import { listings, prices, products } from '../db.ts';
+import { log } from '../log.ts';
 
 /** Painel web do histórico. Protegido por usuário/senha (HTTP Basic). */
 export async function startWeb() {

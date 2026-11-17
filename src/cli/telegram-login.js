@@ -3,7 +3,7 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions/index.js';
-import { config } from '../config.js';
+import { config } from '../config.ts';
 
 const rl = readline.createInterface({ input, output });
 const apiId = config.telegram.apiId || Number(await rl.question('TELEGRAM_API_ID: '));

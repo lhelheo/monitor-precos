@@ -1,7 +1,7 @@
-import { config } from './config.js';
-import { coupons, listings } from './db.js';
+import { config } from './config.ts';
+import { coupons, listings } from './db.ts';
 import { checkListing } from './checker.js';
-import { log } from './log.js';
+import { log } from './log.ts';
 import { runPelandoAlerts, runSearchDiscovery, runPromobitAlerts } from './discovery/index.js';
 
 /**

@@ -1,4 +1,4 @@
-import { log } from './log.js';
+import { log } from './log.ts';
 
 /** Canal de saída das notificações. O bot do Telegram registra o envio aqui ao iniciar. */
 let sender = null;

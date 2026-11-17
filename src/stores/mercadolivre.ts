@@ -1,7 +1,7 @@
-import { config } from '../config.js';
+import { config } from '../config.ts';
 import { fetchHtml, fetchJson, renderHtml } from '../http.ts';
 import { parseCoupons } from '../coupons/parser.ts';
-import { log } from '../log.js';
+import { log } from '../log.ts';
 import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCents } from './common.ts';
 
 export const id = 'mercadolivre';

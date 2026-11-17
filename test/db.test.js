@@ -1,6 +1,6 @@
 import { test, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openDb, closeDb, products, listings, prices, coupons, seen, kv } from '../src/db.js';
+import { openDb, closeDb, products, listings, prices, coupons, seen, kv } from '../src/db.ts';
 
 beforeEach(() => {
   closeDb();
