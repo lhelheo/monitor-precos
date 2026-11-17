@@ -76,7 +76,7 @@ export async function ingestText(text: any, { source = 'telegram', origin = '', 
     try {
       coupons.upsert(coupon);
       saved.push(coupon);
-    } catch (e) {
+    } catch (e: any) {
       log.warn(`Cupom ignorado (${coupon.code}): ${e.message}`);
     }
   }

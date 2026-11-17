@@ -65,7 +65,7 @@ export async function runSearchDiscovery() {
       let items;
       try {
         items = await fetchItems();
-      } catch (e) {
+      } catch (e: any) {
         log.warn(`Busca ${store} "${term}": ${e.message}`);
         continue;
       }
@@ -99,7 +99,7 @@ export async function runPelandoAlerts(send = notify) {
   for (const t of terms) items.push(...(await searchPelando(t)));
   const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
   for (const deal of items) {
-    const created = Date.parse(deal.createdAt);
+    const created = Date.parse(deal.createdAt ?? '');
     if (!Number.isNaN(created) && Date.now() - created > maxAgeMs) continue;
     for (const p of active) {
       if (!matchesKeywords(deal.title, p.keywords) || !inRange(p, deal.priceCents)) continue;
@@ -137,7 +137,7 @@ export async function runPromobitAlerts(send = notify) {
     let links;
     try {
       links = await searchPromobit(term);
-    } catch (e) {
+    } catch (e: any) {
       log.warn(`Promobit "${term}": ${e.message}`);
       continue;
     }
@@ -147,7 +147,7 @@ export async function runPromobitAlerts(send = notify) {
       let offer;
       try {
         offer = await fetchOffer(link.url, link.id);
-      } catch (e) {
+      } catch (e: any) {
         log.warn(`Promobit oferta ${link.id}: ${e.message}`);
         continue;
       }

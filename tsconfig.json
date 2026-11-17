@@ -16,7 +16,9 @@
     "types": [
       "node"
     ],
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strict": true
   },
   "include": [
     "src/**/*.ts",

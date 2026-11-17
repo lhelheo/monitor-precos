@@ -15,7 +15,7 @@ export async function notify(html: any, opts = {}) {
   try {
     await sender(html, opts);
     return true;
-  } catch (e) {
+  } catch (e: any) {
     log.error(`Falha ao enviar notificação: ${e.message}`);
     return false;
   }

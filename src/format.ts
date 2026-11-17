@@ -3,7 +3,7 @@ import { REASON_LABEL } from './alerts.ts';
 import { fmt } from './stores/common.ts';
 import { STORES } from './stores/index.ts';
 
-export const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+export const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' } as Record<string, string>)[c]);
 
 const CONF: Record<string, string> = { confirmed: '🟢 confirmado', probable: '🟡 provável', unverified: '⚪ não verificado' };
 

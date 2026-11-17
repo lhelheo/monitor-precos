@@ -30,7 +30,7 @@ export function parseApi(json: any) {
     title: item.title || item.name || null,
     priceCents,
     pixCents: null as number | null,
-    listCents: before && before > priceCents ? before : null,
+    listCents: before && before > (priceCents ?? 0) ? before : null,
     inStock: stock === undefined ? true : stock > 0,
     seller: json?.data?.shop_detailed?.name || null,
     pageCoupons: [] as any[],

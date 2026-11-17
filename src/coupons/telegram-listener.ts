@@ -26,7 +26,7 @@ export async function startPromoListener(onMatch: any) {
   for (const ch of channels) {
     try {
       entities.push(await client.getEntity(ch));
-    } catch (e) {
+    } catch (e: any) {
       log.warn(`Canal ${ch} não encontrado: ${e.message}`);
     }
   }
@@ -49,7 +49,7 @@ export async function startPromoListener(onMatch: any) {
         for (const product of r.matchedProducts) {
           await onMatch?.({ product, text, deal: r.deal, coupons: r.coupons, channel, link });
         }
-      } catch (e) {
+      } catch (e: any) {
         log.warn(`Erro ao processar mensagem de ${channel}: ${e.message}`);
       }
     },

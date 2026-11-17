@@ -105,7 +105,7 @@ export async function extractWithLlm(text: any, { now = new Date() } = {}) {
       })),
       deal: data.deal ? { ...data.deal, finalCents: data.deal.final_price ? toCents(data.deal.final_price) : null } : null,
     };
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Anthropic.RateLimitError) log.warn('LLM: limite de requisições, usando parser local');
     else if (e instanceof Anthropic.APIError) log.warn(`LLM: erro da API ${e.status}: ${e.message}`);
     else log.warn(`LLM: ${e.message}`);

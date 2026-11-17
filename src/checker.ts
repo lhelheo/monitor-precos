@@ -30,7 +30,7 @@ export async function checkListing(listing: any, { silent = false } = {}) {
   let scraped;
   try {
     scraped = await scrape(listing.url);
-  } catch (err) {
+  } catch (err: any) {
     listings.markFail(listing.id, err.message, backoff(listing, err));
     log.warn(`#${listing.id} ${listing.store}: ${err.message}`);
     // avisa uma única vez quando um anúncio começa a falhar seguidamente

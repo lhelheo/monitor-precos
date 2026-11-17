@@ -30,8 +30,8 @@ export function parse(html: any) {
   return {
     title: product?.name ?? ld?.title ?? null,
     priceCents,
-    pixCents: pixCents && pixCents < priceCents ? pixCents : null,
-    listCents: oldCents && oldCents > priceCents ? oldCents : null,
+    pixCents: pixCents && pixCents < (priceCents ?? 0) ? pixCents : null,
+    listCents: oldCents && oldCents > (priceCents ?? 0) ? oldCents : null,
     inStock: product ? Boolean(product.available ?? product.flags?.isAvailable) : ld?.inStock ?? null,
     seller: product?.sellerName ?? product?.marketplace?.sellerName ?? ld?.seller ?? 'KaBuM!',
     pageCoupons,

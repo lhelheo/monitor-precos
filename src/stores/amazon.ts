@@ -53,7 +53,7 @@ export function parse(html: any) {
     pageCoupons.push({
       code: null as string | null,
       kind: v.includes('%') ? 'pct' : 'fixed',
-      value: v.includes('%') ? Number(v.replace(/[^\d]/g, '')) : toCents(v) / 100,
+      value: v.includes('%') ? Number(v.replace(/[^\d]/g, '')) : (toCents(v) ?? 0) / 100,
       conditions: { clipCoupon: true },
       confidence: 'confirmed',
       rawText: couponBox.slice(0, 300),
@@ -74,7 +74,7 @@ export function parse(html: any) {
     title,
     priceCents,
     pixCents: null as number | null,
-    listCents: listCents && listCents > priceCents ? listCents : null,
+    listCents: listCents && listCents > (priceCents ?? 0) ? listCents : null,
     inStock,
     seller: merchant,
     pageCoupons,

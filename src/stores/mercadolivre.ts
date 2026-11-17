@@ -109,7 +109,7 @@ export async function scrape(url: any) {
   if (config.mercadoLivre.clientId) {
     try {
       return { ...(await viaApi(url)), externalId: externalId(url) };
-    } catch (e) {
+    } catch (e: any) {
       log.warn(`ML API falhou, tentando página: ${e.message}`);
     }
   }

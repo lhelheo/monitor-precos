@@ -63,7 +63,7 @@ function parseAmounts(seg: string): any {
     out.value = Number(pct[1].replace(',', '.'));
   } else if (fixed) {
     out.kind = 'fixed';
-    out.value = toCents(fixed[1]) / 100;
+    out.value = (toCents(fixed?.[1]) ?? 0) / 100;
   }
   const min = seg.match(
     /(?:acima\s+de|a\s+partir\s+de|compras?\s+(?:m[ií]nimas?\s+)?(?:de|acima\s+de)|m[ií]nimo\s+(?:de\s+)?|pedido\s+m[ií]nimo\s+(?:de\s+)?)\s*R\$\s*([\d.]+(?:,\d{1,2})?)/i,
@@ -134,5 +134,5 @@ export function parseAnnouncedPrice(text: any) {
     .filter((m) => !/(?:acima|partir|m[ií]nimo|limit|m[aá]ximo|de:|\bde\b)\s*$/i.test(text.slice(Math.max(0, m.index - 14), m.index)))
     .map((m) => toCents(m[1]))
     .filter((c) => c && c > 100);
-  return vals.length ? Math.min(...vals) : null;
+  return vals.length ? Math.min(...(vals as number[])) : null;
 }

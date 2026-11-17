@@ -48,9 +48,9 @@ export function jsonLd($: any) {
 
 /** Extrai dados de um Product do schema.org, se houver. */
 export function productFromJsonLd($: any) {
-  const p = jsonLd($).find((o) => [].concat(o['@type']).includes('Product'));
+  const p = jsonLd($).find((o) => ([] as any[]).concat(o['@type']).includes('Product'));
   if (!p) return null;
-  const offers = [].concat(p.offers || []).flatMap((o) => (o?.['@type'] === 'AggregateOffer' ? [o, ...[].concat(o.offers || [])] : [o]));
+  const offers = ([] as any[]).concat(p.offers || []).flatMap((o) => (o?.['@type'] === 'AggregateOffer' ? [o, ...([] as any[]).concat(o.offers || [])] : [o]));
   const prices = offers
     .map((o) => toCents(o?.price ?? o?.lowPrice ?? o?.priceSpecification?.price))
     .filter((c) => c !== null && c > 0);
@@ -59,7 +59,7 @@ export function productFromJsonLd($: any) {
     title: p.name || null,
     sku: p.sku || p.productID || null,
     gtin: p.gtin13 || p.gtin || p.gtin14 || p.gtin12 || null,
-    priceCents: prices.length ? Math.min(...prices) : null,
+    priceCents: prices.length ? Math.min(...(prices as number[])) : null,
     inStock: availability ? /InStock|LimitedAvailability|PreOrder/i.test(availability) : null,
     seller: offers[0]?.seller?.name || null,
   };
