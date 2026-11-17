@@ -15,7 +15,6 @@ const norm = (s: unknown): string =>
 /**
  * Motivo pelo qual um cupom não se aplica (ou null se aplica).
  * @param {PriceCoupon} coupon
- * @param {{ priceCents: number, title?: any, user?: { firstPurchase?: boolean, amazonPrime?: boolean } }} options
  */
 export function couponBlocker(
   coupon: PriceCoupon,
@@ -47,14 +46,13 @@ export function couponDiscount(coupon: PriceCoupon, baseCents: number): number {
  *
  * @param {import('./types.ts').ScrapedPage} scraped  resultado do coletor
  * @param {import('./types.ts').CouponInput[]} [coupons]  cupons da loja (página + canais + manuais)
- * @param {{ minConfidence?: string, user?: { firstPurchase?: boolean, amazonPrime?: boolean }, rules?: any }} [options]
  *   minConfidence: menor confiança aceita para entrar no preço efetivo
  * @returns {import('./types.ts').EffectiveResult | null}
  */
 export function effectivePrice(
   scraped: ScrapedPage,
   coupons: PriceCoupon[] = [],
-  options: { minConfidence?: string; user?: { firstPurchase?: boolean; amazonPrime?: boolean }; rules?: any } = {},
+  options: { minConfidence?: string; user?: { firstPurchase?: boolean; amazonPrime?: boolean }; rules?: { pixExtraPct?: number; cashbackPct?: number; countCashback?: boolean } } = {},
 ) {
   const { minConfidence = 'probable', user = config.user, rules } = options;
   const r = rules ?? config.stores[scraped.store ?? ''] ?? {};

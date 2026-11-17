@@ -12,8 +12,8 @@ const arg = process.argv[2];
 const targets = arg ? [{ url: normalizeUrl(arg), store: storeFor(arg)?.id, id: 0, product_id: 0 }] : listings.all();
 for (const l of targets) {
   if (!arg && !products.get(l.product_id)?.active) continue;
-    const r: any = await checkListing(l.id ? (l as ListingRow) : ({ ...l, product_id: 0 } as unknown as ListingRow), { silent: true }).catch((e: any) => ({ ok: false, error: e.message }));
-  if (r.ok) console.log(`#${l.id || '-'} ${l.store}: ${fmt(r.eff.effectiveCents)} (preço ${fmt(r.scraped.priceCents)})`);
+    const r = await checkListing(l.id ? (l as ListingRow) : ({ ...l, product_id: 0 } as unknown as ListingRow), { silent: true }).catch((e) => ({ ok: false, error: (e as Error).message, eff: undefined, scraped: undefined }));
+  if (r.ok) console.log(`#${l.id || '-'} ${l.store}: ${fmt(r.eff?.effectiveCents ?? null)} (preço ${fmt(r.scraped?.priceCents ?? null)})`);
   else console.log(`#${l.id || '-'} ${l.store}: ERRO ${r.error}`);
 }
 await closeBrowser();

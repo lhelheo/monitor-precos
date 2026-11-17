@@ -1,4 +1,6 @@
 import { TelegramClient } from 'telegram';
+import type { ProductRow } from '../types.ts';
+import type { CouponWrite } from '../db.ts';
 import { StringSession } from 'telegram/sessions/index.js';
 import { NewMessage } from 'telegram/events/index.js';
 import { config } from '../config.ts';
@@ -12,22 +14,31 @@ import { ingestText } from './ingest.ts';
  *
  * @param onMatch  chamado quando uma mensagem menciona um produto monitorado: ({ product, text, deal, coupons, channel, link })
  */
-export async function startPromoListener(onMatch: any) {
+export type PromoMatchHandler = (m: {
+  product: ProductRow;
+  text: string;
+  deal: unknown;
+  coupons: CouponWrite[];
+  channel: string;
+  link: string | null;
+}) => Promise<void> | void;
+
+export async function startPromoListener(onMatch: PromoMatchHandler | undefined) {
   const { apiId, apiHash, session, channels } = config.telegram;
   if (!apiId || !apiHash || !session || !channels.length) {
     log.info('Leitor de canais de promoção desativado (configure TELEGRAM_API_ID/HASH/SESSION e TELEGRAM_PROMO_CHANNELS)');
     return null;
   }
   const client = new TelegramClient(new StringSession(session), apiId, apiHash, { connectionRetries: 10 });
-  client.setLogLevel('error' as any);
+  client.setLogLevel('error' as Parameters<typeof client.setLogLevel>[0]);
   await client.connect();
 
   const entities = [];
   for (const ch of channels) {
     try {
       entities.push(await client.getEntity(ch));
-    } catch (e: any) {
-      log.warn(`Canal ${ch} não encontrado: ${e.message}`);
+    } catch (e) {
+      log.warn(`Canal ${ch} não encontrado: ${(e as Error).message}`);
     }
   }
   if (!entities.length) {
@@ -40,7 +51,7 @@ export async function startPromoListener(onMatch: any) {
       const msg = event.message;
       const text = msg?.message;
       if (!text) return;
-      const chat: any = await msg.getChat().catch((): null => null);
+      const chat = (await msg.getChat().catch((): null => null)) as unknown as { username?: string; title?: string } | null;
       const channel = chat?.username || chat?.title || 'canal';
       try {
         const r = await ingestText(text, { source: 'telegram', origin: channel });
@@ -49,8 +60,8 @@ export async function startPromoListener(onMatch: any) {
         for (const product of r.matchedProducts) {
           await onMatch?.({ product, text, deal: r.deal, coupons: r.coupons, channel, link });
         }
-      } catch (e: any) {
-        log.warn(`Erro ao processar mensagem de ${channel}: ${e.message}`);
+      } catch (e) {
+        log.warn(`Erro ao processar mensagem de ${channel}: ${(e as Error).message}`);
       }
     },
     new NewMessage({ chats: entities.map((e) => e.id) }),

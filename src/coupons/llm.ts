@@ -58,10 +58,25 @@ Retorne somente o que está escrito na mensagem; use null quando um campo não f
 "store" é a loja onde o cupom/oferta vale (kabum, amazon, magalu, mercadolivre ou shopee), deduzida do texto ou dos links.
 "deal" descreve o produto anunciado e o preço final, se a mensagem anunciar um produto específico; senão null.`;
 
-let client: any = null;
+let client: Anthropic | null = null;
 export const llmEnabled = () => Boolean(config.anthropic.apiKey);
 
-export async function extractWithLlm(text: any, { now = new Date() } = {}) {
+interface LlmCoupon {
+  store: string | null;
+  code: string | null;
+  kind: 'pct' | 'fixed' | null;
+  value: number | null;
+  min_purchase: number | null;
+  max_discount: number | null;
+  first_purchase_only: boolean;
+  app_only: boolean;
+  selected_items_only: boolean;
+  payment_method: string | null;
+  valid_until: string | null;
+  product_keywords: string[];
+}
+
+export async function extractWithLlm(text: string, { now = new Date() }: { now?: Date } = {}) {
   if (!llmEnabled()) return null;
   client ??= new Anthropic({ apiKey: config.anthropic.apiKey });
   try {
@@ -83,11 +98,11 @@ export async function extractWithLlm(text: any, { now = new Date() } = {}) {
       log.warn(`LLM: resposta incompleta (${res.stop_reason})`);
       return null;
     }
-    const block = res.content.find((b: any) => b.type === 'text');
+    const block = res.content.find((b) => b.type === 'text');
     const data = JSON.parse(block?.text || 'null');
     if (!data) return null;
     return {
-      coupons: data.coupons.map((c: any) => ({
+      coupons: data.coupons.map((c: LlmCoupon) => ({
         store: c.store,
         code: c.code,
         kind: c.kind,
@@ -105,10 +120,10 @@ export async function extractWithLlm(text: any, { now = new Date() } = {}) {
       })),
       deal: data.deal ? { ...data.deal, finalCents: data.deal.final_price ? toCents(data.deal.final_price) : null } : null,
     };
-  } catch (e: any) {
+  } catch (e) {
     if (e instanceof Anthropic.RateLimitError) log.warn('LLM: limite de requisições, usando parser local');
-    else if (e instanceof Anthropic.APIError) log.warn(`LLM: erro da API ${e.status}: ${e.message}`);
-    else log.warn(`LLM: ${e.message}`);
+    else if (e instanceof Anthropic.APIError) log.warn(`LLM: erro da API ${e.status}: ${(e as Error).message}`);
+    else log.warn(`LLM: ${(e as Error).message}`);
     return null;
   }
 }

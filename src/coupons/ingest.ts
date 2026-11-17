@@ -52,7 +52,6 @@ function confidenceFor(c: { kind?: CouponKind | null; value?: number; conditions
  * Processa uma mensagem de canal de promoção (ou texto enviado via /cupom).
  * Salva os cupons encontrados e devolve os produtos monitorados que a mensagem menciona.
  *
- * @returns {Promise<{ coupons: any[], deal: any, matchedProducts: any[] }>}
  */
 export async function ingestText(
   text: string,

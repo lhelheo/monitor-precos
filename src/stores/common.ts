@@ -86,11 +86,16 @@ export function productFromJsonLd($: CheerioAPI): JsonLdProduct | null {
 }
 
 /** JSON do Next.js (__NEXT_DATA__), se houver. */
-export function nextData($: CheerioAPI): any {
+/** Dados do Next.js embutidos na página (estrutura varia por site; acesso sempre verificado). */
+export interface NextData {
+  props?: Obj;
+}
+
+export function nextData($: CheerioAPI): NextData | null {
   const txt = $('#__NEXT_DATA__').contents().text();
   if (!txt) return null;
   try {
-    return JSON.parse(txt);
+    return JSON.parse(txt) as NextData;
   } catch {
     return null;
   }

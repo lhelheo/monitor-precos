@@ -29,16 +29,16 @@ export async function startWeb() {
   });
 
   app.get('/api/products', async () =>
-    products.list().map((p: any) => {
+    products.list().map((p) => {
       const ls = listings.byProduct(p.id);
-      const best = ls.filter((l: any) => l.last_effective_cents).sort((a: any, b: any) => a.last_effective_cents - b.last_effective_cents)[0];
+      const best = ls.filter((l) => l.last_effective_cents).sort((a, b) => (a.last_effective_cents ?? 0) - (b.last_effective_cents ?? 0))[0];
       return {
         id: p.id,
         name: p.name,
         active: Boolean(p.active),
         targetCents: p.target_cents,
         bestCents: best?.last_effective_cents ?? null,
-        listings: ls.map((l: any) => ({
+        listings: ls.map((l) => ({
           id: l.id,
           store: l.store,
           title: l.title,
@@ -54,7 +54,7 @@ export async function startWeb() {
   );
 
   app.get('/api/products/:id/history', async (req, reply) => {
-    const id = Number((req as any).params.id);
+    const id = Number((req as unknown as { params: { id: string } }).params.id);
     const p = products.get(id);
     if (!p) return reply.code(404).send({ error: 'não encontrado' });
     const rows = prices.historyForProduct(id, 0);
@@ -63,7 +63,7 @@ export async function startWeb() {
       name: p.name,
       targetCents: p.target_cents,
       stats: prices.statsForProduct(id, 0),
-      points: rows.map((r: any) => ({
+      points: rows.map((r) => ({
         ts: r.ts,
         store: r.store,
         listingId: r.listing_id,

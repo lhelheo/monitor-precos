@@ -50,7 +50,6 @@ export function formatAlert({
 
 /**
  * Mensagem de canal de promoção que menciona um produto monitorado.
- * @param {{ product: any, text: string, deal: any, coupons: any[], channel: string, link?: string }} args
  */
 export function formatDeal(args: {
   product: ProductRow;
