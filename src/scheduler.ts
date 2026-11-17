@@ -1,8 +1,8 @@
 import { config } from './config.ts';
 import { coupons, listings } from './db.ts';
-import { checkListing } from './checker.js';
+import { checkListing } from './checker.ts';
 import { log } from './log.ts';
-import { runPelandoAlerts, runSearchDiscovery, runPromobitAlerts } from './discovery/index.js';
+import { runPelandoAlerts, runSearchDiscovery, runPromobitAlerts } from './discovery/index.ts';
 
 /**
  * Agendador simples e econômico (pensado para 1 vCPU):

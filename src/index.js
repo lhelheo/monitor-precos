@@ -1,10 +1,10 @@
 import { config } from './config.ts';
 import { openDb, closeDb } from './db.ts';
 import { log } from './log.ts';
-import { startScheduler } from './scheduler.js';
+import { startScheduler } from './scheduler.ts';
 import { createBot } from './bot.js';
 import { startWeb } from './web/server.js';
-import { startPromoListener } from './coupons/telegram-listener.js';
+import { startPromoListener } from './coupons/telegram-listener.ts';
 import { formatDeal } from './format.ts';
 import { notify } from './notifier.ts';
 import { closeBrowser } from './http.ts';

@@ -4,7 +4,7 @@ import { matchesKeywords } from '../coupons/ingest.ts';
 import { formatDeal } from '../format.ts';
 import { notify } from '../notifier.ts';
 import { log } from '../log.ts';
-import { searchKabum, searchPelando, searchZoom } from './sources.js';
+import { searchKabum, searchPelando, searchZoom } from './sources.ts';
 import { fetchOffer, searchPromobit, slugText, storeIdFromName } from './promobit.ts';
 import { coupons } from '../db.ts';
 import { fmt } from '../stores/common.ts';
@@ -51,8 +51,7 @@ export async function runSearchDiscovery() {
   for (const p of activeProducts()) {
     const term = searchTerm(p.keywords);
     if (!term) continue;
-    /** @type {Array<[string, () => Promise<any[]>]>} */
-    const sources = [
+    const sources: Array<[string, () => Promise<any[]>]> = [
       // a Kabum é sensível à ordem das palavras: se a busca vier vazia, tenta com as palavras invertidas
       ['kabum', async () => {
         const direct = await searchKabum(term);

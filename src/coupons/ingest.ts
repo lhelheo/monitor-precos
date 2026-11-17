@@ -2,7 +2,7 @@ import { coupons, products } from '../db.ts';
 import { log } from '../log.ts';
 import { STORES } from '../stores/index.ts';
 import { detectStore, parseAnnouncedPrice, parseCoupons } from './parser.ts';
-import { extractWithLlm, llmEnabled } from './llm.js';
+import { extractWithLlm, llmEnabled } from './llm.ts';
 
 const VALID_STORES = new Set(Object.keys(STORES));
 

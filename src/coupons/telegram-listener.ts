@@ -19,7 +19,7 @@ export async function startPromoListener(onMatch) {
     return null;
   }
   const client = new TelegramClient(new StringSession(session), apiId, apiHash, { connectionRetries: 10 });
-  client.setLogLevel(/** @type {any} */ ('error'));
+  client.setLogLevel('error' as any);
   await client.connect();
 
   const entities = [];

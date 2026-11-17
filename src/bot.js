@@ -1,7 +1,7 @@
 import { Bot } from 'grammy';
 import { config } from './config.ts';
 import { coupons, listings, prices, products } from './db.ts';
-import { checkListing } from './checker.js';
+import { checkListing } from './checker.ts';
 import { storeFor, normalizeUrl, STORES } from './stores/index.ts';
 import { ingestText } from './coupons/ingest.ts';
 import { esc, formatDeal } from './format.ts';
