@@ -23,6 +23,7 @@ export function couponBlocker(
   const { priceCents, title, user = config.user } = options;
   if (!coupon.kind || !coupon.value) return 'sem valor conhecido';
   if (coupon.conditions?.firstPurchase && !user.firstPurchase) return 'só primeira compra';
+  if (coupon.conditions?.primeOnly && !user.amazonPrime) return 'só Prime';
   if (coupon.minCents && priceCents < coupon.minCents) return 'abaixo do valor mínimo';
   if (coupon.keywords?.length) {
     const t = norm(title);
@@ -127,6 +128,7 @@ export function couponLabel(c: PriceCoupon): string {
   const parts = [c.code ? `${c.code} (${v})` : `cupom ${v}`];
   if (c.conditions?.clipCoupon) parts.push('marcar cupom na página');
   if (c.conditions?.appOnly) parts.push('só no app');
+  if (c.conditions?.primeOnly) parts.push('só Prime');
   if (c.conditions?.payment) parts.push(`pagando com ${c.conditions.payment}`);
   if (c.minCents) parts.push(`mín. R$ ${(c.minCents / 100).toFixed(0)}`);
   return parts.join(', ');

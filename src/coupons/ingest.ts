@@ -41,6 +41,15 @@ export function matchesKeywords(text: string | null | undefined, keywords: strin
   return pos.every((x) => x.alts.some(has)) && terms.filter((x) => x.neg).every((x) => !x.alts.some(has));
 }
 
+/**
+ * Faixa de preço do produto (/faixa) aplicada ao preço anunciado numa mensagem.
+ * Sem preço legível a mensagem passa: ela cita o produto e não há como julgar o valor.
+ */
+export function withinRange(p: ProductRow, cents: number | null | undefined): boolean {
+  if (!cents) return true;
+  return (!p.price_min_cents || cents >= p.price_min_cents) && (!p.price_max_cents || cents <= p.price_max_cents);
+}
+
 /** Confiança de um cupom vindo de canal/agregador. */
 function confidenceFor(c: { kind?: CouponKind | null; value?: number; conditions?: CouponConditions }): Confidence {
   if (!c.kind || !c.value) return 'unverified';
@@ -92,6 +101,12 @@ export async function ingestText(
     }
   }
 
-  const matchedProducts = products.list().filter((p) => p.active && matchesKeywords(text, p.keywords));
+  const announced = parsed.deal?.finalCents ?? null;
+  const matchedProducts = products.list().filter((p) => {
+    if (!p.active || !matchesKeywords(text, p.keywords)) return false;
+    if (withinRange(p, announced)) return true;
+    log.info(`Mensagem${origin ? ` de ${origin}` : ''} cita "${p.name}", mas o preço anunciado está fora da faixa`);
+    return false;
+  });
   return { coupons: saved, deal: parsed.deal, matchedProducts };
 }

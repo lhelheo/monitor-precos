@@ -14,6 +14,8 @@ export type CouponKind = 'pct' | 'fixed';
 export interface CouponConditions {
   firstPurchase?: boolean;
   appOnly?: boolean;
+  /** só para assinantes Amazon Prime ("Exclusivo Prime") */
+  primeOnly?: boolean;
   selectedItems?: boolean;
   payment?: string;
   thisItem?: boolean;

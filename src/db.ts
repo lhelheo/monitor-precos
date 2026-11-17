@@ -351,6 +351,7 @@ export const coupons = {
          min_cents = COALESCE(excluded.min_cents, min_cents),
          max_discount_cents = COALESCE(excluded.max_discount_cents, max_discount_cents),
          valid_until = COALESCE(excluded.valid_until, valid_until),
+         conditions_json = COALESCE(excluded.conditions_json, conditions_json),
          raw_text = excluded.raw_text`,
     ).run(
       c.store,

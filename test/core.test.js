@@ -10,7 +10,7 @@ import { parse as parseKabum } from '../src/stores/kabum.ts';
 import { parse as parseAmazon } from '../src/stores/amazon.ts';
 import { parseApi as parseShopee } from '../src/stores/shopee.ts';
 import { normalizeUrl, storeFor } from '../src/stores/index.ts';
-import { matchesKeywords } from '../src/coupons/ingest.ts';
+import { matchesKeywords, withinRange } from '../src/coupons/ingest.ts';
 import { alertReasons } from '../src/alerts.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -67,6 +67,26 @@ test('preço efetivo: escolhe o melhor cupom e respeita valor mínimo', () => {
 test('preço efetivo: cupom "só primeira compra" é bloqueado por padrão', () => {
   const blocker = couponBlocker({ kind: 'fixed', value: 20, conditions: { firstPurchase: true } }, { priceCents: 40000, title: 'x', user: { firstPurchase: false } });
   assert.equal(blocker, 'só primeira compra');
+});
+
+test('cupom "Exclusivo Prime": reconhecido e bloqueado só para quem não é Prime', () => {
+  const [c] = parseCoupons('Exclusivo Prime: 15% off em TVs e Monitores. Insira o código TELAS15 na finalização da compra.', { store: 'amazon' });
+  assert.equal(c.code, 'TELAS15');
+  assert.equal(c.conditions.primeOnly, true);
+  assert.equal(couponBlocker(c, { priceCents: 200000, title: 'TV', user: { amazonPrime: false } }), 'só Prime');
+  assert.equal(couponBlocker(c, { priceCents: 200000, title: 'TV', user: { amazonPrime: true } }), null);
+  // "PRIME" dentro do código não é condição
+  const [d] = parseCoupons('💵 R$ 1736\n🎟 Cupom: BLACKPRIME15', { store: 'amazon' });
+  assert.equal(d.conditions.primeOnly, undefined);
+});
+
+test('faixa de preço: mensagem de canal fora da faixa não passa; sem preço passa', () => {
+  const p = { price_min_cents: 200000, price_max_cents: 400000 };
+  assert.equal(withinRange(p, 173600), false);
+  assert.equal(withinRange(p, 250000), true);
+  assert.equal(withinRange(p, 450000), false);
+  assert.equal(withinRange(p, null), true);
+  assert.equal(withinRange({ price_min_cents: null, price_max_cents: null }, 173600), true);
 });
 
 test('cupom de confiança baixa não entra no preço efetivo quando minConfidence=confirmed', () => {

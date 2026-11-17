@@ -25,7 +25,9 @@ cp .env.example .env   # e preencha os valores
 ```
 
 Regras por loja (Pix extra que a página não mostra, cashback que você recebe) ficam em `config/lojas.json`.
-Em `.env`, `USER_FIRST_PURCHASE=true` libera os cupons de primeira compra no cálculo.
+Em `.env`, `USER_FIRST_PURCHASE=true` libera os cupons de primeira compra no cálculo, e `USER_AMAZON_PRIME=true` libera os cupons "Exclusivo Prime" da Amazon.
+
+A faixa de preço do produto (`/faixa`) vale também para as mensagens dos canais de promoção: se o preço anunciado estiver fora dela, o aviso não é enviado. Mensagens sem preço legível continuam sendo avisadas.
 
 ## Rodando
 

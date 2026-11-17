@@ -109,6 +109,9 @@ function parseConditions(seg: string): CouponConditions {
   const c: CouponConditions = {};
   if (/primeira\s+compra|1[ªa]\s+compra|novos?\s+clientes?/i.test(seg)) c.firstPurchase = true;
   if (/\bno\s+app\b|\bpelo\s+app\b|s[oó]\s+(?:no\s+)?app|aplicativo|\bapp\b/i.test(seg)) c.appOnly = true;
+  // "Exclusivo Prime", "só para membros Prime"; não confunde com códigos como BLACKPRIME15
+  if (/exclusiv[oa]s?\s+(?:para\s+)?(?:membros\s+|assinantes\s+|clientes\s+)?prime\b|(?:s[oó]|apenas)\s+(?:para\s+)?(?:membros|assinantes|clientes)\s+prime\b|\b(?:membros|assinantes)\s+prime\b/i.test(seg))
+    c.primeOnly = true;
   if (/selecionad[oa]s|participantes|categorias?\s+selecionad/i.test(seg)) c.selectedItems = true;
   const pay = seg.match(/(?:pagando|pagamento|exclusivo)\s+(?:com|no|via)\s+([A-Za-zÀ-ú0-9 ]{3,25}?)(?:[.,;!]|$)/i);
   if (pay) c.payment = pay[1].trim();

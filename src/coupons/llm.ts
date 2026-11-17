@@ -19,7 +19,7 @@ const SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['store', 'code', 'kind', 'value', 'min_purchase', 'max_discount', 'first_purchase_only', 'app_only', 'selected_items_only', 'payment_method', 'valid_until', 'product_keywords'],
+        required: ['store', 'code', 'kind', 'value', 'min_purchase', 'max_discount', 'first_purchase_only', 'app_only', 'prime_only', 'selected_items_only', 'payment_method', 'valid_until', 'product_keywords'],
         properties: {
           store: { type: ['string', 'null'], description: 'kabum, amazon, magalu, mercadolivre ou shopee' },
           code: { type: ['string', 'null'] },
@@ -29,6 +29,7 @@ const SCHEMA = {
           max_discount: { type: ['number', 'null'], description: 'desconto máximo em reais' },
           first_purchase_only: { type: 'boolean' },
           app_only: { type: 'boolean' },
+          prime_only: { type: 'boolean', description: 'cupom exclusivo para assinantes Amazon Prime' },
           selected_items_only: { type: 'boolean' },
           payment_method: { type: ['string', 'null'] },
           valid_until: { type: ['string', 'null'], description: 'ISO 8601 no fuso America/Sao_Paulo, se informado' },
@@ -70,6 +71,7 @@ interface LlmCoupon {
   max_discount: number | null;
   first_purchase_only: boolean;
   app_only: boolean;
+  prime_only: boolean;
   selected_items_only: boolean;
   payment_method: string | null;
   valid_until: string | null;
@@ -113,6 +115,7 @@ export async function extractWithLlm(text: string, { now = new Date() }: { now?:
         conditions: {
           ...(c.first_purchase_only && { firstPurchase: true }),
           ...(c.app_only && { appOnly: true }),
+          ...(c.prime_only && { primeOnly: true }),
           ...(c.selected_items_only && { selectedItems: true }),
           ...(c.payment_method && { payment: c.payment_method }),
         },

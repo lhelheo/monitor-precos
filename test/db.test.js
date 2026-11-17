@@ -49,6 +49,13 @@ test('cupons: upsert não duplica e o cupom aparece para a loja', () => {
   assert.equal(ativos[0].code, 'CONTROLE10');
 });
 
+test('cupons: upsert atualiza as condições de um cupom já salvo', () => {
+  const c = { store: 'amazon', code: 'TELAS15', kind: 'pct', value: 15, source: 'page', confidence: 'confirmed', conditions: {} };
+  coupons.upsert(c);
+  coupons.upsert({ ...c, conditions: { primeOnly: true } });
+  assert.equal(coupons.activeFor('amazon', 999)[0].conditions.primeOnly, true);
+});
+
 test('itens já vistos: só a primeira marcação é nova', () => {
   assert.equal(seen.has('pelando', 'abc'), false);
   assert.equal(seen.markNew('pelando', 'abc'), true);
