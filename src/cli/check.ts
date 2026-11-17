@@ -11,8 +11,7 @@ const arg = process.argv[2];
 const targets = arg ? [{ url: normalizeUrl(arg), store: storeFor(arg)?.id, id: 0 }] : listings.all();
 for (const l of targets) {
   if (!arg && !products.get(l.product_id)?.active) continue;
-  /** @type {any} */
-  const r = await checkListing(l.id ? l : { ...l, product_id: 0 }, { silent: true }).catch((e) => ({ ok: false, error: e.message }));
+    const r: any = await checkListing(l.id ? l : { ...l, product_id: 0 }, { silent: true }).catch((e: any) => ({ ok: false, error: e.message }));
   if (r.ok) console.log(`#${l.id || '-'} ${l.store}: ${fmt(r.eff.effectiveCents)} (preço ${fmt(r.scraped.priceCents)})`);
   else console.log(`#${l.id || '-'} ${l.store}: ERRO ${r.error}`);
 }

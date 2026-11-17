@@ -48,7 +48,7 @@ export function createBot() {
   const chatId = config.telegram.chatId;
 
   // Saída de alertas/notificações
-  setSender(async (html, opts = {}) => {
+  setSender(async (html: string, opts: { disablePreview?: boolean } = {}) => {
     if (!chatId) return;
     await bot.api.sendMessage(chatId, html, { parse_mode: 'HTML', link_preview_options: { is_disabled: opts.disablePreview ?? true } });
   });
@@ -193,7 +193,7 @@ export function createBot() {
 
   bot.on('message:text', (ctx) => reply(ctx, 'Não entendi. Use /ajuda para ver os comandos.'));
   bot.catch((err) => {
-    const e = /** @type {any} */ (err);
+    const e = (err as any);
     log.error(`Bot: ${e.error?.message || e.message}`);
   });
   return bot;

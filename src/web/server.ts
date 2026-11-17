@@ -54,7 +54,7 @@ export async function startWeb() {
   );
 
   app.get('/api/products/:id/history', async (req, reply) => {
-    const id = Number(/** @type {any} */ (req).params.id);
+    const id = Number((req as any).params.id);
     const p = products.get(id);
     if (!p) return reply.code(404).send({ error: 'não encontrado' });
     const rows = prices.historyForProduct(id, 0);
