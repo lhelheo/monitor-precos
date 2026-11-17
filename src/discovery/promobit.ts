@@ -8,9 +8,9 @@ import { BlockedError, findDeep, loadHtml, nextData, toCents } from '../stores/c
 const BASE = 'https://www.promobit.com.br';
 
 /** Links de ofertas de uma busca. Devolve [{ id, url }] (id = número no fim do endereço). */
-export async function searchPromobit(term) {
+export async function searchPromobit(term: any) {
   // a página de busca leva alguns segundos para montar os resultados; se vier vazia, tenta de novo
-  const collect = (html) => {
+  const collect = (html: any) => {
     const out = new Map();
     for (const m of html.matchAll(/href="(\/oferta\/[^"]+)"/g)) {
       const id = m[1].match(/-(\d+)\/?$/)?.[1];
@@ -30,15 +30,15 @@ export async function searchPromobit(term) {
 }
 
 /** Texto legível do endereço da oferta ("controle-sem-fio-dualsense-3200281/" -> "controle sem fio dualsense"). */
-export function slugText(url) {
+export function slugText(url: any) {
   const slug = decodeURIComponent(url.split('/oferta/')[1] ?? '').replace(/\/$/, '');
   return slug.replace(/-\d+$/, '').replace(/-/g, ' ');
 }
 
 /** Dados de uma oferta, a partir da página da oferta. Exportado para testes. */
-export function parseOffer(html, offerId) {
+export function parseOffer(html: any, offerId: any) {
   const nd = nextData(loadHtml(html));
-  const o = nd ? findDeep(nd.props, (x) => String(x.offerId) === String(offerId) && 'offerTitle' in x) : null;
+  const o = nd ? findDeep(nd.props, (x: any) => String(x.offerId) === String(offerId) && 'offerTitle' in x) : null;
   if (!o) return null;
   return {
     title: o.offerTitle,
@@ -51,14 +51,14 @@ export function parseOffer(html, offerId) {
   };
 }
 
-export async function fetchOffer(url, id) {
+export async function fetchOffer(url: any, id: any) {
   const r = await fetchHtml(url);
   if (r.status !== 200) throw new BlockedError('promobit', `oferta HTTP ${r.status}`);
   return parseOffer(r.html, id);
 }
 
 /** Nome da loja do Promobit -> id interno (ou 'any' se não reconhecer). */
-export function storeIdFromName(name) {
+export function storeIdFromName(name: any) {
   const n = String(name || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (n.includes('kabum')) return 'kabum';
   if (n.includes('amazon')) return 'amazon';

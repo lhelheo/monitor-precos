@@ -4,19 +4,19 @@ import { BlockedError, cleanText, findDeep, loadHtml, metaPrice, nextData, produ
 
 export const id = 'magalu';
 export const name = 'Magalu';
-export const match = (u) => /(^|\.)(magazineluiza|magalu)\.com(\.br)?$/i.test(new URL(u).hostname);
-export const externalId = (u) => new URL(u).pathname.match(/\/p\/([a-z0-9]+)/i)?.[1] ?? null;
+export const match = (u: any) => /(^|\.)(magazineluiza|magalu)\.com(\.br)?$/i.test(new URL(u).hostname);
+export const externalId = (u: any) => new URL(u).pathname.match(/\/p\/([a-z0-9]+)/i)?.[1] ?? null;
 
-const isBlockedPage = (html) => /N[aã]o [eé] poss[ií]vel acessar a p[aá]gina|akamai-bot|Access Denied/i.test(html.slice(0, 4000));
+const isBlockedPage = (html: any) => /N[aã]o [eé] poss[ií]vel acessar a p[aá]gina|akamai-bot|Access Denied/i.test(html.slice(0, 4000));
 
-export function parse(html) {
+export function parse(html: any) {
   if (isBlockedPage(html)) return { blocked: true };
   const $ = loadHtml(html);
   const ld = productFromJsonLd($);
   const nd = nextData($);
   // Estrutura do Next.js da Magalu varia; procuramos um objeto de preço com "bestPrice"/"price"
   const priceObj = nd
-    ? findDeep(nd.props?.pageProps, (o) => o && typeof o === 'object' && ('bestPrice' in o || 'paymentMethodDescription' in o) && 'price' in o)
+    ? findDeep(nd.props?.pageProps, (o: any) => o && typeof o === 'object' && ('bestPrice' in o || 'paymentMethodDescription' in o) && 'price' in o)
     : null;
 
   const priceCents = toCents(priceObj?.price) ?? ld?.priceCents ?? metaPrice($);
@@ -36,7 +36,7 @@ export function parse(html) {
   };
 }
 
-export async function scrape(url) {
+export async function scrape(url: any) {
   let r = await fetchHtml(url);
   let data = r.status === 200 ? parse(r.html) : null;
   if (!data || data.blocked) {

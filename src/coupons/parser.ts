@@ -15,7 +15,7 @@ const STORE_PATTERNS: [string, RegExp][] = [
   ['shopee', /shopee|shp\.ee/i],
 ];
 
-export function detectStore(text) {
+export function detectStore(text: any) {
   for (const [store, re] of STORE_PATTERNS) if (re.test(text)) return store;
   return null;
 }
@@ -31,7 +31,7 @@ const CODE_RE =
   /(?:cupo[mn]s?|c[oó]digo|code)\s*(?:de\s+desconto\s*)?(?:promocional\s*)?[:\-–—]?\s*["'\u201C\u201D\u2018\u2019\x60*_]*\s*([A-Za-z0-9][A-Za-z0-9_-]{3,24})\b/gi;
 
 /** Data de validade a partir de "até 23:59", "até 20/11", "válido até 30/11/2026 às 10h". */
-export function parseValidity(text, ref = new Date()) {
+export function parseValidity(text: any, ref = new Date()) {
   const dm = text.match(/at[eé]\s+(?:o\s+dia\s+)?(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[^\d]{1,6}(\d{1,2})[:h](\d{2})?)?/i);
   if (dm) {
     const year = dm[3] ? (dm[3].length === 2 ? 2000 + Number(dm[3]) : Number(dm[3])) : ref.getFullYear();
@@ -91,10 +91,10 @@ function parseConditions(seg: string): any {
  * Extrai cupons de um texto. Retorna lista de { code, kind, value, minCents, maxDiscountCents, conditions, validUntil, store, rawText }.
  * Cupons sem valor (kind) ainda são retornados — o valor pode já estar embutido no preço anunciado na mensagem.
  */
-export function parseCoupons(text, { store = null, now = new Date() } = {}) {
+export function parseCoupons(text: any, { store = null, now = new Date() }: any = {}) {
   if (!text) return [];
   const flat = String(text).replace(/ /g, ' ');
-  const results = [];
+  const results: any[] = [];
   const matches = [...flat.matchAll(CODE_RE)].filter((m) => {
     const code = m[1];
     return /[A-Z]/.test(code) && code === code.toUpperCase() && !NOT_CODES.has(code);
@@ -128,7 +128,7 @@ export function parseCoupons(text, { store = null, now = new Date() } = {}) {
 }
 
 /** "R$ 349,90" mais baixo presente numa mensagem de promoção (preço anunciado). */
-export function parseAnnouncedPrice(text) {
+export function parseAnnouncedPrice(text: any) {
   const vals = [...String(text).matchAll(/R\$\s*([\d.]+(?:,\d{1,2})?)/g)]
     .filter((m) => !/^\s*(?:de\s+)?(?:off|desconto)/i.test(text.slice(m.index + m[0].length, m.index + m[0].length + 12)))
     .filter((m) => !/(?:acima|partir|m[ií]nimo|limit|m[aá]ximo|de:|\bde\b)\s*$/i.test(text.slice(Math.max(0, m.index - 14), m.index)))

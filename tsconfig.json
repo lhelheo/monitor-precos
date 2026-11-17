@@ -3,7 +3,9 @@
     "target": "ES2024",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "lib": ["ES2024"],
+    "lib": [
+      "ES2024"
+    ],
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
@@ -11,7 +13,16 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "noImplicitAny": true
   },
-  "include": ["src/**/*.js", "src/**/*.ts", "test/**/*.js", "test/**/*.mjs"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "src/index.js"
+  ]
 }

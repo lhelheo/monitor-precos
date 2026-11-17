@@ -58,10 +58,10 @@ Retorne somente o que está escrito na mensagem; use null quando um campo não f
 "store" é a loja onde o cupom/oferta vale (kabum, amazon, magalu, mercadolivre ou shopee), deduzida do texto ou dos links.
 "deal" descreve o produto anunciado e o preço final, se a mensagem anunciar um produto específico; senão null.`;
 
-let client = null;
+let client: any = null;
 export const llmEnabled = () => Boolean(config.anthropic.apiKey);
 
-export async function extractWithLlm(text, { now = new Date() } = {}) {
+export async function extractWithLlm(text: any, { now = new Date() } = {}) {
   if (!llmEnabled()) return null;
   client ??= new Anthropic({ apiKey: config.anthropic.apiKey });
   try {
@@ -83,11 +83,11 @@ export async function extractWithLlm(text, { now = new Date() } = {}) {
       log.warn(`LLM: resposta incompleta (${res.stop_reason})`);
       return null;
     }
-    const block = res.content.find((b) => b.type === 'text');
+    const block = res.content.find((b: any) => b.type === 'text');
     const data = JSON.parse(block?.text || 'null');
     if (!data) return null;
     return {
-      coupons: data.coupons.map((c) => ({
+      coupons: data.coupons.map((c: any) => ({
         store: c.store,
         code: c.code,
         kind: c.kind,

@@ -2,8 +2,8 @@ import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const num = (v, d) => (v === undefined || v === '' || Number.isNaN(Number(v)) ? d : Number(v));
-const bool = (v, d = false) => (v === undefined || v === '' ? d : /^(1|true|sim|yes)$/i.test(v));
+const num = (v: any, d: any) => (v === undefined || v === '' || Number.isNaN(Number(v)) ? d : Number(v));
+const bool = (v: any, d = false) => (v === undefined || v === '' ? d : /^(1|true|sim|yes)$/i.test(v));
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 

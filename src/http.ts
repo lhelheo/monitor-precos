@@ -11,7 +11,7 @@ const HEADERS = {
 };
 
 /** GET simples. Devolve { status, url, html }. */
-export async function fetchHtml(url, { timeoutMs = 25000, headers = {} } = {}) {
+export async function fetchHtml(url: any, { timeoutMs = 25000, headers = {} } = {}) {
   const res = await fetch(url, {
     headers: { ...HEADERS, ...headers },
     redirect: 'follow',
@@ -21,7 +21,7 @@ export async function fetchHtml(url, { timeoutMs = 25000, headers = {} } = {}) {
   return { status: res.status, url: res.url, html };
 }
 
-export async function fetchJson(url, { timeoutMs = 20000, headers = {} } = {}) {
+export async function fetchJson(url: any, { timeoutMs = 20000, headers = {} } = {}) {
   const res = await fetch(url, {
     headers: { 'user-agent': UA, accept: 'application/json', ...headers },
     signal: AbortSignal.timeout(timeoutMs),
@@ -40,8 +40,8 @@ export async function fetchJson(url, { timeoutMs = 20000, headers = {} } = {}) {
 // Navegador (Playwright) compartilhado. Abre sob demanda e fecha quando ocioso,
 // para não ocupar ~300 MB de RAM o tempo todo numa VPS pequena.
 // ---------------------------------------------------------------------------
-let browserPromise = null;
-let idleTimer = null;
+let browserPromise: any = null;
+let idleTimer: any = null;
 let inUse = 0;
 
 async function getBrowser() {
@@ -60,7 +60,7 @@ function scheduleIdleClose() {
   if (!(config.browser.idleCloseSec > 0)) return;
   idleTimer = setTimeout(async () => {
     if (inUse > 0 || !browserPromise) return;
-    const b = await browserPromise.catch(() => null);
+    const b = await browserPromise.catch((): null => null);
     browserPromise = null;
     await b?.close().catch(() => {});
     log.info('Chromium fechado por ociosidade');
@@ -85,7 +85,7 @@ export async function renderHtml(
     context = await browser.newContext({ locale: 'pt-BR', userAgent: UA, viewport: { width: 1366, height: 900 } });
     const page = await context.newPage();
     // economiza banda/CPU: não baixa imagens, fontes e mídia
-    await page.route('**/*', (route) => {
+    await page.route('**/*', (route: any) => {
       const t = route.request().resourceType();
       return ['image', 'media', 'font'].includes(t) ? route.abort() : route.continue();
     });
@@ -102,7 +102,7 @@ export async function renderHtml(
 
 export async function closeBrowser() {
   clearTimeout(idleTimer);
-  const b = await browserPromise?.catch(() => null);
+  const b = await browserPromise?.catch((): null => null);
   browserPromise = null;
   await b?.close().catch(() => {});
 }

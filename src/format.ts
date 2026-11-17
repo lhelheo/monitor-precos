@@ -3,18 +3,18 @@ import { REASON_LABEL } from './alerts.ts';
 import { fmt } from './stores/common.ts';
 import { STORES } from './stores/index.ts';
 
-export const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+export const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
 
-const CONF = { confirmed: '🟢 confirmado', probable: '🟡 provável', unverified: '⚪ não verificado' };
+const CONF: Record<string, string> = { confirmed: '🟢 confirmado', probable: '🟡 provável', unverified: '⚪ não verificado' };
 
 /** Mensagem de alerta (HTML do Telegram). */
-export function formatAlert({ product, listing, scraped, eff, reasons, statsAll }) {
+export function formatAlert({ product, listing, scraped, eff, reasons, statsAll }: any) {
   const b = eff.breakdown;
   const lines = [
     `🔥 <b>${esc(product.name)}</b>`,
     `${STORES[listing.store]?.name ?? listing.store}: <b>${fmt(eff.effectiveCents)}</b> ${b.coupon ? `(${CONF[eff.confidence]})` : ''}`,
     '',
-    reasons.map((r) => REASON_LABEL[r] ?? r).join('\n'),
+    reasons.map((r: any) => REASON_LABEL[r] ?? r).join('\n'),
     '',
     `💳 Preço: ${fmt(b.priceCents)}${scraped.listCents ? ` <s>${fmt(scraped.listCents)}</s>` : ''}`,
   ];
@@ -36,7 +36,7 @@ export function formatAlert({ product, listing, scraped, eff, reasons, statsAll 
  * Mensagem de canal de promoção que menciona um produto monitorado.
  * @param {{ product: any, text: string, deal: any, coupons: any[], channel: string, link?: string }} args
  */
-export function formatDeal(args) {
+export function formatDeal(args: any) {
   const { product, text, deal, coupons, channel, link } = args;
   const lines = [`📣 <b>${esc(product.name)}</b> apareceu em <b>${esc(channel)}</b>`];
   if (deal?.finalCents) lines.push(`Preço anunciado: <b>${fmt(deal.finalCents)}</b>${product.target_cents ? ` (alvo ${fmt(product.target_cents)})` : ''}`);

@@ -3,14 +3,14 @@ import { BlockedError, loadHtml, nextData, toCents } from '../stores/common.ts';
 import { searchZoom } from '../stores/zoom.ts';
 
 /** Busca na Kabum (página de busca, JSON embutido). Devolve anúncios com preço, sem filtro. */
-export async function searchKabum(term) {
+export async function searchKabum(term: any) {
   const slug = encodeURIComponent(term.trim().replace(/\s+/g, '-'));
   const r = await fetchHtml(`https://www.kabum.com.br/busca/${slug}`);
   if (r.status !== 200) throw new BlockedError('kabum', `busca HTTP ${r.status}`);
   const nd = nextData(loadHtml(r.html));
-  const out = [];
+  const out: any[] = [];
   const seen = new Set();
-  const walk = (o, d = 0) => {
+  const walk = (o: any, d = 0) => {
     if (!o || typeof o !== 'object' || d > 14) return;
     if ((typeof o.code === 'number' || typeof o.code === 'string') && o.name && o.price !== undefined && o.priceWithDiscount !== undefined) {
       if (!seen.has(o.code)) {
@@ -35,7 +35,7 @@ export async function searchKabum(term) {
  * Ofertas da comunidade (Pelando). A página de busca traz os dados das ofertas embutidos,
  * com título, preço, loja e temperatura. Devolve [{ externalId, title, priceCents, store, temperature, url }].
  */
-export async function searchPelando(term) {
+export async function searchPelando(term: any) {
   const slug = encodeURIComponent(term.trim().replace(/\s+/g, '-'));
   const r = await fetchHtml(`https://www.pelando.com.br/busca/${slug}`);
   if (r.status !== 200) throw new BlockedError('pelando', `busca HTTP ${r.status}`);

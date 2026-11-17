@@ -6,10 +6,10 @@ import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCent
 
 export const id = 'mercadolivre';
 export const name = 'Mercado Livre';
-export const match = (u) => /(^|\.)mercadoli(vre|bre)\.com(\.br)?$/i.test(new URL(u).hostname);
+export const match = (u: any) => /(^|\.)mercadoli(vre|bre)\.com(\.br)?$/i.test(new URL(u).hostname);
 
 /** { item: 'MLB123...' } para anúncio, { product: 'MLB123...' } para página de catálogo (/p/). */
-export function ids(u) {
+export function ids(u: any) {
   const url = new URL(u);
   const q = url.searchParams.get('wid') || url.searchParams.get('item_id') ||
     url.searchParams.get('pdp_filters')?.match(/item_id[:%3A]+(MLB\d+)/i)?.[1];
@@ -17,13 +17,13 @@ export function ids(u) {
   const product = url.pathname.match(/\/p\/(MLB\d+)/i)?.[1];
   return { item: item ? item.toUpperCase() : null, product: product ? product.toUpperCase() : null };
 }
-export const externalId = (u) => {
+export const externalId = (u: any) => {
   const { item, product } = ids(u);
   return product || item;
 };
 
 // ---------------- API oficial (recomendada) ----------------
-let token = null;
+let token: any = null;
 let tokenExp = 0;
 
 async function getToken() {
@@ -44,7 +44,7 @@ async function getToken() {
   return token;
 }
 
-async function api(path) {
+async function api(path: any) {
   const t = await getToken();
   const r = await fetchJson(`https://api.mercadolibre.com${path}`, {
     headers: t ? { authorization: `Bearer ${t}` } : {},
@@ -53,38 +53,38 @@ async function api(path) {
   return r.json;
 }
 
-async function viaApi(u) {
+async function viaApi(u: any) {
   const { item, product } = ids(u);
   if (product && !item) {
     const p = await api(`/products/${product}`);
     const bb = p.buy_box_winner;
-    if (!bb) return { title: p.name, priceCents: null, inStock: false, seller: null, pageCoupons: [] };
+    if (!bb) return { title: p.name, priceCents: null as number | null, inStock: false, seller: null as string | null, pageCoupons: [] as any[] };
     return {
       title: p.name,
       priceCents: toCents(bb.price),
-      pixCents: null,
+      pixCents: null as number | null,
       listCents: bb.original_price ? toCents(bb.original_price) : null,
       inStock: true,
       seller: bb.seller_id ? `seller ${bb.seller_id}` : null,
-      pageCoupons: [],
+      pageCoupons: [] as any[],
     };
   }
   const it = await api(`/items/${item}`);
   return {
     title: it.title,
     priceCents: toCents(it.price),
-    pixCents: null,
+    pixCents: null as number | null,
     listCents: it.original_price ? toCents(it.original_price) : null,
     inStock: it.status === 'active' && (it.available_quantity ?? 1) > 0,
     seller: it.seller_id ? `seller ${it.seller_id}` : null,
-    pageCoupons: [],
+    pageCoupons: [] as any[],
   };
 }
 
 // ---------------- HTML (alternativa) ----------------
-const isBlockedPage = (html) => /suspicious-traffic|account-verification|captcha/i.test(html.slice(0, 5000));
+const isBlockedPage = (html: any) => /suspicious-traffic|account-verification|captcha/i.test(html.slice(0, 5000));
 
-export function parse(html) {
+export function parse(html: any) {
   if (isBlockedPage(html)) return { blocked: true };
   const $ = loadHtml(html);
   const ld = productFromJsonLd($);
@@ -97,7 +97,7 @@ export function parse(html) {
   return {
     title: ld?.title || cleanText($('h1.ui-pdp-title').text()) || null,
     priceCents,
-    pixCents: null,
+    pixCents: null as number | null,
     listCents: listCents && listCents > priceCents ? listCents : null,
     inStock: ld?.inStock ?? !/indispon[ií]vel|pausad/i.test($('.ui-pdp-stock-information, .ui-pdp-message').text()),
     seller: ld?.seller || cleanText($('.ui-pdp-seller__link-trigger').first().text()) || null,
@@ -105,7 +105,7 @@ export function parse(html) {
   };
 }
 
-export async function scrape(url) {
+export async function scrape(url: any) {
   if (config.mercadoLivre.clientId) {
     try {
       return { ...(await viaApi(url)), externalId: externalId(url) };

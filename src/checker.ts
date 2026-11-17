@@ -10,13 +10,13 @@ import { log } from './log.ts';
 
 const HEARTBEAT_MS = 6 * 3600_000; // grava ponto mesmo sem mudança a cada 6h (gráfico contínuo)
 
-function nextCheck(listing, now = Date.now()) {
+function nextCheck(listing: any, now = Date.now()) {
   const min = listing.interval_min || config.scheduler.defaultIntervalMin;
   const jitter = 1 + (Math.random() * 2 - 1) * config.scheduler.jitterPct;
   return now + Math.round(min * 60_000 * jitter);
 }
 
-function backoff(listing, err, now = Date.now()) {
+function backoff(listing: any, err: any, now = Date.now()) {
   const min = listing.interval_min || config.scheduler.defaultIntervalMin;
   const fails = (listing.fail_count || 0) + 1;
   const factor = err instanceof BlockedError ? 3 : 2;
@@ -24,7 +24,7 @@ function backoff(listing, err, now = Date.now()) {
 }
 
 /** Verifica um anúncio: coleta, calcula preço efetivo, grava histórico e dispara alertas. */
-export async function checkListing(listing, { silent = false } = {}) {
+export async function checkListing(listing: any, { silent = false } = {}) {
   const product = products.get(listing.product_id);
   const startedAt = Date.now();
   let scraped;

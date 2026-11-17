@@ -12,7 +12,7 @@ import { ingestText } from './ingest.ts';
  *
  * @param onMatch  chamado quando uma mensagem menciona um produto monitorado: ({ product, text, deal, coupons, channel, link })
  */
-export async function startPromoListener(onMatch) {
+export async function startPromoListener(onMatch: any) {
   const { apiId, apiHash, session, channels } = config.telegram;
   if (!apiId || !apiHash || !session || !channels.length) {
     log.info('Leitor de canais de promoção desativado (configure TELEGRAM_API_ID/HASH/SESSION e TELEGRAM_PROMO_CHANNELS)');
@@ -40,7 +40,7 @@ export async function startPromoListener(onMatch) {
       const msg = event.message;
       const text = msg?.message;
       if (!text) return;
-      const chat = await msg.getChat().catch(() => null);
+      const chat: any = await msg.getChat().catch((): null => null);
       const channel = chat?.username || chat?.title || 'canal';
       try {
         const r = await ingestText(text, { source: 'telegram', origin: channel });

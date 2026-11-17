@@ -29,16 +29,16 @@ export async function startWeb() {
   });
 
   app.get('/api/products', async () =>
-    products.list().map((p) => {
+    products.list().map((p: any) => {
       const ls = listings.byProduct(p.id);
-      const best = ls.filter((l) => l.last_effective_cents).sort((a, b) => a.last_effective_cents - b.last_effective_cents)[0];
+      const best = ls.filter((l: any) => l.last_effective_cents).sort((a: any, b: any) => a.last_effective_cents - b.last_effective_cents)[0];
       return {
         id: p.id,
         name: p.name,
         active: Boolean(p.active),
         targetCents: p.target_cents,
         bestCents: best?.last_effective_cents ?? null,
-        listings: ls.map((l) => ({
+        listings: ls.map((l: any) => ({
           id: l.id,
           store: l.store,
           title: l.title,
@@ -63,7 +63,7 @@ export async function startWeb() {
       name: p.name,
       targetCents: p.target_cents,
       stats: prices.statsForProduct(id, 0),
-      points: rows.map((r) => ({
+      points: rows.map((r: any) => ({
         ts: r.ts,
         store: r.store,
         listingId: r.listing_id,

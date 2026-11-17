@@ -23,17 +23,17 @@ const HELP = `<b>Comandos</b>
 /remover &lt;id&gt; — remove um produto
 /ajuda — esta lista`;
 
-function ownerOnly(ctx) {
+function ownerOnly(ctx: any) {
   return String(ctx.chat?.id) === String(config.telegram.chatId);
 }
 
-const parseId = (s) => {
+const parseId = (s: any) => {
   const n = Number(s);
   return Number.isInteger(n) && n > 0 ? n : null;
 };
 
 /** "350", "350,90", "R$ 1.299,90" -> centavos */
-function parseMoney(s) {
+function parseMoney(s: any) {
   const v = String(s).replace(/R\$|\s/g, '').replace(/\./g, '').replace(',', '.');
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null;
@@ -62,8 +62,8 @@ export function createBot() {
     return next();
   });
 
-  const reply = (ctx, text, extra = {}) => ctx.reply(text, { parse_mode: 'HTML', link_preview_options: { is_disabled: true }, ...extra });
-  const arg = (ctx) => (ctx.match || '').trim();
+  const reply = (ctx: any, text: any, extra = {}) => ctx.reply(text, { parse_mode: 'HTML', link_preview_options: { is_disabled: true }, ...extra });
+  const arg = (ctx: any) => (ctx.match || '').trim();
 
   bot.command(['start', 'ajuda'], (ctx) => reply(ctx, HELP));
 
@@ -122,9 +122,9 @@ export function createBot() {
   bot.command('lista', (ctx) => {
     const ps = products.list();
     if (!ps.length) return reply(ctx, 'Nenhum produto ainda. Use /novo.');
-    const out = ps.map((p) => {
+    const out = ps.map((p: any) => {
       const ls = listings.byProduct(p.id);
-      const best = ls.filter((l) => l.last_effective_cents).sort((a, b) => a.last_effective_cents - b.last_effective_cents)[0];
+      const best = ls.filter((l: any) => l.last_effective_cents).sort((a: any, b: any) => a.last_effective_cents - b.last_effective_cents)[0];
       const status = !p.active ? '⏸' : best ? `${fmt(best.last_effective_cents)} (${STORES[best.store]?.name})` : 'sem leitura';
       return `#${p.id} <b>${esc(p.name)}</b> — ${status}${p.target_cents ? ` · alvo ${fmt(p.target_cents)}` : ''} · ${ls.length} anúncio(s)`;
     });
@@ -135,7 +135,7 @@ export function createBot() {
     const id = parseId(arg(ctx));
     const p = id && products.get(id);
     if (!p) return reply(ctx, 'Uso: /historico &lt;id&gt;');
-    const lines = listings.byProduct(p.id).map((l) =>
+    const lines = listings.byProduct(p.id).map((l: any) =>
       `${STORES[l.store]?.name}: atual ${fmt(l.last_effective_cents)}${l.last_ok_at ? '' : ' (sem leitura ainda)'}`,
     );
     const s = prices.statsForProduct(p.id, 0);
@@ -168,7 +168,7 @@ export function createBot() {
     }
     // reverifica os anúncios das lojas dos cupons agora
     for (const c of r.coupons) {
-      for (const l of listings.all().filter((x) => x.store === c.store && x.active)) listings.scheduleNow(l.id);
+      for (const l of listings.all().filter((x: any) => x.store === c.store && x.active)) listings.scheduleNow(l.id);
     }
   });
 
@@ -179,7 +179,7 @@ export function createBot() {
       ctx,
       list
         .slice(0, 30)
-        .map((c) => `<code>${esc(c.code ?? '—')}</code> ${esc(c.store)} · ${esc(c.kind === 'pct' ? c.value + '%' : fmt(c.value * 100))} · ${c.confidence}`)
+        .map((c: any) => `<code>${esc(c.code ?? '—')}</code> ${esc(c.store)} · ${esc(c.kind === 'pct' ? c.value + '%' : fmt(c.value * 100))} · ${c.confidence}`)
         .join('\n'),
     );
   });

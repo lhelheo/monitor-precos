@@ -1,8 +1,8 @@
 import { config } from './config.ts';
 
-const RANK = { confirmed: 3, probable: 2, unverified: 1 };
+const RANK: Record<string, number> = { confirmed: 3, probable: 2, unverified: 1 };
 
-const norm = (s) =>
+const norm = (s: any) =>
   String(s || '')
     .toLowerCase()
     .normalize('NFD')
@@ -23,12 +23,12 @@ export function couponBlocker(
   if (coupon.minCents && priceCents < coupon.minCents) return 'abaixo do valor mínimo';
   if (coupon.keywords?.length) {
     const t = norm(title);
-    if (!coupon.keywords.some((k) => t.includes(norm(k)))) return 'categoria/produto diferente';
+    if (!coupon.keywords.some((k: any) => t.includes(norm(k)))) return 'categoria/produto diferente';
   }
   return null;
 }
 
-export function couponDiscount(coupon, baseCents) {
+export function couponDiscount(coupon: any, baseCents: any) {
   let d = coupon.kind === 'pct' ? Math.round((baseCents * coupon.value) / 100) : Math.round(coupon.value * 100);
   if (coupon.maxDiscountCents) d = Math.min(d, coupon.maxDiscountCents);
   return Math.max(0, Math.min(d, baseCents));
@@ -120,7 +120,7 @@ export function effectivePrice(
   };
 }
 
-export function couponLabel(c) {
+export function couponLabel(c: any) {
   const v = c.kind === 'pct' ? `${c.value}%` : `R$ ${Number(c.value).toFixed(2).replace('.', ',')}`;
   const parts = [c.code ? `${c.code} (${v})` : `cupom ${v}`];
   if (c.conditions?.clipCoupon) parts.push('marcar cupom na página');

@@ -4,17 +4,17 @@ import { BlockedError, cleanText, loadHtml, toCents } from './common.ts';
 
 export const id = 'amazon';
 export const name = 'Amazon';
-export const match = (u) => /(^|\.)amazon\.com\.br$/i.test(new URL(u).hostname);
-export const externalId = (u) => u.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase() ?? null;
+export const match = (u: any) => /(^|\.)amazon\.com\.br$/i.test(new URL(u).hostname);
+export const externalId = (u: any) => u.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase() ?? null;
 /** URL canônica curta, sem rastreadores. */
-export const canonical = (u) => {
+export const canonical = (u: any) => {
   const asin = externalId(u);
   return asin ? `https://www.amazon.com.br/dp/${asin}` : u;
 };
 
-const isCaptcha = (html) => /validateCaptcha|Digite os caracteres|api-services-support@amazon/i.test(html);
+const isCaptcha = (html: any) => /validateCaptcha|Digite os caracteres|api-services-support@amazon/i.test(html);
 
-export function parse(html) {
+export function parse(html: any) {
   const $ = loadHtml(html);
   if (isCaptcha(html)) return { blocked: true };
 
@@ -51,7 +51,7 @@ export function parse(html) {
   if (boxMatch) {
     const v = boxMatch[1];
     pageCoupons.push({
-      code: null,
+      code: null as string | null,
       kind: v.includes('%') ? 'pct' : 'fixed',
       value: v.includes('%') ? Number(v.replace(/[^\d]/g, '')) : toCents(v) / 100,
       conditions: { clipCoupon: true },
@@ -73,7 +73,7 @@ export function parse(html) {
   return {
     title,
     priceCents,
-    pixCents: null,
+    pixCents: null as number | null,
     listCents: listCents && listCents > priceCents ? listCents : null,
     inStock,
     seller: merchant,
@@ -81,7 +81,7 @@ export function parse(html) {
   };
 }
 
-export async function scrape(url) {
+export async function scrape(url: any) {
   const target = canonical(url);
   let r = await fetchHtml(target);
   let data = r.status === 200 ? parse(r.html) : null;

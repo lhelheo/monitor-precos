@@ -6,7 +6,7 @@ import { extractWithLlm, llmEnabled } from './llm.ts';
 
 const VALID_STORES = new Set(Object.keys(STORES));
 
-const norm = (s) =>
+const norm = (s: any) =>
   String(s || '')
     .toLowerCase()
     .normalize('NFD')
@@ -16,24 +16,24 @@ const norm = (s) =>
  * Palavras-chave do produto: "dualsense -edge -capa" => precisa ter "dualsense" e não pode ter "edge" nem "capa".
  * Termos entre aspas viram frase: "\"midnight black\" dualsense".
  */
-export function matchesKeywords(text, keywords) {
+export function matchesKeywords(text: any, keywords: any) {
   if (!keywords) return false;
   // "PlayStation5" escrito junto (comum em títulos) vira "playstation 5"
   const t = norm(text).replace(/playstation(\d)/g, 'playstation $1');
   const terms = [...keywords.matchAll(/(-?)"([^"]+)"|(-?)(\S+)/g)].map((m) => ({
     neg: Boolean(m[1] || m[3]),
     // "(console|slim|digital)" = qualquer uma das alternativas
-    alts: (m[2] || m[4]).replace(/^\(|\)$/g, '').split('|').map((a) => norm(a)),
+    alts: (m[2] || m[4]).replace(/^\(|\)$/g, '').split('|').map((a: any) => norm(a)),
   }));
   // palavra inteira (não pedaço): "-pro" não pode excluir "produto"
-  const has = (term) => new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(t);
+  const has = (term: any) => new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(t);
   const pos = terms.filter((x) => !x.neg);
   if (!pos.length) return false;
   return pos.every((x) => x.alts.some(has)) && terms.filter((x) => x.neg).every((x) => !x.alts.some(has));
 }
 
 /** Confiança de um cupom vindo de canal/agregador. */
-function confidenceFor(c) {
+function confidenceFor(c: any) {
   if (!c.kind || !c.value) return 'unverified';
   if (c.conditions?.selectedItems) return 'unverified';
   return 'probable';
@@ -45,7 +45,7 @@ function confidenceFor(c) {
  *
  * @returns {Promise<{ coupons: any[], deal: any, matchedProducts: any[] }>}
  */
-export async function ingestText(text, { source = 'telegram', origin = '', forceConfidence = null } = {}) {
+export async function ingestText(text: any, { source = 'telegram', origin = '', forceConfidence = null }: any = {}) {
   if (!text || text.length < 8) return { coupons: [], deal: null, matchedProducts: [] };
   const hasCoupon = /cupo[mn]|c[oó]digo/i.test(text);
   const fallbackStore = detectStore(text);
@@ -81,6 +81,6 @@ export async function ingestText(text, { source = 'telegram', origin = '', force
     }
   }
 
-  const matchedProducts = products.list().filter((p) => p.active && matchesKeywords(text, p.keywords));
+  const matchedProducts = products.list().filter((p: any) => p.active && matchesKeywords(text, p.keywords));
   return { coupons: saved, deal: parsed.deal, matchedProducts };
 }

@@ -10,12 +10,12 @@ import { coupons } from '../db.ts';
 import { fmt } from '../stores/common.ts';
 
 // limite de anúncios descobertos por loja e por produto
-const CAP = { kabum: 20, zoom: 10 };
+const CAP: Record<string, number> = { kabum: 20, zoom: 10 };
 // anúncios descobertos automaticamente são verificados com menos frequência (muitos anúncios, mesma loja)
 const DISCOVERED_INTERVAL_MIN = 30;
 
 /** Primeiro termo positivo das palavras-chave, usado como busca nas lojas ("controle dualsense -edge" -> "controle dualsense"). */
-export function searchTerm(keywords) {
+export function searchTerm(keywords: any) {
   return searchTerms(keywords)[0] ?? null;
 }
 
@@ -23,25 +23,25 @@ export function searchTerm(keywords) {
  * Termos de busca. Um grupo de alternativas "(console|slim|digital)" gera uma busca para cada alternativa,
  * porque cada loja/agregador indexa os títulos de um jeito diferente.
  */
-export function searchTerms(keywords) {
+export function searchTerms(keywords: any) {
   if (!keywords) return [];
   let variants = [''];
   for (const m of keywords.matchAll(/"([^"]+)"|(\S+)/g)) {
     const raw = m[1] || m[2];
     if ((m[2] || '').startsWith('-')) continue;
     const alts = raw.replace(/^\(|\)$/g, '').split('|');
-    variants = variants.flatMap((v) => alts.map((a) => (v ? v + ' ' + a : a)));
+    variants = variants.flatMap((v) => alts.map((a: any) => (v ? v + ' ' + a : a)));
   }
   return variants.map((v) => v.trim()).filter(Boolean).slice(0, 3);
 }
 
-const inRange = (p, cents) =>
+const inRange = (p: any, cents: any) =>
   cents !== null &&
   cents !== undefined &&
   (!p.price_min_cents || cents >= p.price_min_cents) &&
   (!p.price_max_cents || cents <= p.price_max_cents);
 
-const activeProducts = () => products.list().filter((p) => p.active && p.keywords);
+const activeProducts = () => products.list().filter((p: any) => p.active && p.keywords);
 
 /**
  * Busca automática nas lojas e no comparador: cadastra anúncios novos que batem com as palavras-chave
@@ -70,7 +70,7 @@ export async function runSearchDiscovery() {
         continue;
       }
       let added = 0;
-      const current = listings.byProduct(p.id).filter((l) => l.store === store).length;
+      const current = listings.byProduct(p.id).filter((l: any) => l.store === store).length;
       for (const it of items) {
         if (current + added >= (CAP[store] ?? 10)) break;
         if (!matchesKeywords(it.title, p.keywords)) continue;
@@ -94,7 +94,7 @@ export async function runPelandoAlerts(send = notify) {
   const active = activeProducts();
   if (!active.length) return;
 
-  const terms = [...new Set(active.map((p) => searchTerm(p.keywords)).filter(Boolean))];
+  const terms = [...new Set(active.map((p: any) => searchTerm(p.keywords)).filter(Boolean))];
   const items = [];
   for (const t of terms) items.push(...(await searchPelando(t)));
   const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
@@ -131,7 +131,7 @@ export async function runPromobitAlerts(send = notify) {
   if (!active.length) return;
   const first = !kv.get('promobit_bootstrapped');
   const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
-  const terms = [...new Set(active.flatMap((p) => searchTerms(p.keywords)))];
+  const terms = [...new Set(active.flatMap((p: any) => searchTerms(p.keywords)))];
 
   for (const term of terms) {
     let links;
@@ -142,7 +142,7 @@ export async function runPromobitAlerts(send = notify) {
       continue;
     }
     for (const link of links) {
-      if (!active.some((p) => matchesKeywords(slugText(link.url), p.keywords))) continue;
+      if (!active.some((p: any) => matchesKeywords(slugText(link.url), p.keywords))) continue;
       if (seen.has('promobit', link.id)) continue;
       let offer;
       try {

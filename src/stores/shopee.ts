@@ -3,24 +3,24 @@ import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.t
 
 export const id = 'shopee';
 export const name = 'Shopee';
-export const match = (u) => /(^|\.)shopee\.com\.br$/i.test(new URL(u).hostname);
+export const match = (u: any) => /(^|\.)shopee\.com\.br$/i.test(new URL(u).hostname);
 
 /** shopee.com.br/nome-i.SHOPID.ITEMID  ou  shopee.com.br/product/SHOPID/ITEMID */
-export function ids(u) {
+export function ids(u: any) {
   const p = new URL(u).pathname;
   const m = p.match(/-i\.(\d+)\.(\d+)/) || p.match(/\/product\/(\d+)\/(\d+)/);
   return m ? { shopId: m[1], itemId: m[2] } : null;
 }
-export const externalId = (u) => {
+export const externalId = (u: any) => {
   const x = ids(u);
   return x ? `${x.shopId}.${x.itemId}` : null;
 };
 
 // Preços na API interna da Shopee vêm multiplicados por 100000
-const shopeeCents = (v) => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
+const shopeeCents = (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
 
 /** Interpreta a resposta da API interna da página de produto (pdp). Exportado para testes. */
-export function parseApi(json) {
+export function parseApi(json: any) {
   const item = json?.data?.item || json?.data;
   if (!item || (item.price === undefined && item.price_min === undefined)) return null;
   const priceCents = shopeeCents(item.price) ?? shopeeCents(item.price_min);
@@ -29,18 +29,18 @@ export function parseApi(json) {
   return {
     title: item.title || item.name || null,
     priceCents,
-    pixCents: null,
+    pixCents: null as number | null,
     listCents: before && before > priceCents ? before : null,
     inStock: stock === undefined ? true : stock > 0,
     seller: json?.data?.shop_detailed?.name || null,
-    pageCoupons: [],
+    pageCoupons: [] as any[],
   };
 }
 
-export async function scrape(url) {
+export async function scrape(url: any) {
   // A Shopee monta a página via API interna assinada; capturamos a resposta dela no navegador.
   /** @type {any} */
-  let apiData = null;
+  let apiData: any = null;
   const r = await renderHtml(url, {
     waitMs: 6000,
     onResponse: async (res) => {
@@ -60,11 +60,11 @@ export async function scrape(url) {
     return {
       title: ld.title,
       priceCents: ld.priceCents,
-      pixCents: null,
+      pixCents: null as number | null,
       listCents: null,
       inStock: ld.inStock ?? true,
       seller: ld.seller,
-      pageCoupons: [],
+      pageCoupons: [] as any[],
       externalId: externalId(url),
     };
   }

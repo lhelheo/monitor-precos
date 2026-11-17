@@ -93,11 +93,11 @@ CREATE TABLE IF NOT EXISTS kv (
 );
 `;
 
-let db;
+let db: any;
 
 // Migrações para bancos criados em versões anteriores
-function migrate(d) {
-  const cols = d.prepare('PRAGMA table_info(products)').all().map((c) => c.name);
+function migrate(d: any) {
+  const cols = d.prepare('PRAGMA table_info(products)').all().map((c: any) => c.name);
   if (!cols.includes('price_min_cents')) d.exec('ALTER TABLE products ADD COLUMN price_min_cents INTEGER');
   if (!cols.includes('price_max_cents')) d.exec('ALTER TABLE products ADD COLUMN price_max_cents INTEGER');
   d.exec(`CREATE TABLE IF NOT EXISTS seen_items (
@@ -126,29 +126,29 @@ const now = () => Date.now();
 
 // ---------- products ----------
 export const products = {
-  create({ name, targetCents = null }) {
+  create({ name, targetCents = null }: any) {
     const r = openDb()
       .prepare('INSERT INTO products (name, target_cents, created_at) VALUES (?, ?, ?)')
       .run(name, targetCents, now());
     return Number(r.lastInsertRowid);
   },
-  get: (id) => openDb().prepare('SELECT * FROM products WHERE id = ?').get(id),
+  get: (id: any) => openDb().prepare('SELECT * FROM products WHERE id = ?').get(id),
   list: () => openDb().prepare('SELECT * FROM products ORDER BY id').all(),
-  setTarget: (id, cents) => openDb().prepare('UPDATE products SET target_cents = ? WHERE id = ?').run(cents, id),
-  setKeywords: (id, kw) => openDb().prepare('UPDATE products SET keywords = ? WHERE id = ?').run(kw || null, id),
-  setRange: (id, minCents, maxCents) =>
+  setTarget: (id: any, cents: any) => openDb().prepare('UPDATE products SET target_cents = ? WHERE id = ?').run(cents, id),
+  setKeywords: (id: any, kw: any) => openDb().prepare('UPDATE products SET keywords = ? WHERE id = ?').run(kw || null, id),
+  setRange: (id: any, minCents: any, maxCents: any) =>
     openDb().prepare('UPDATE products SET price_min_cents = ?, price_max_cents = ? WHERE id = ?').run(minCents || null, maxCents || null, id),
-  rename: (id, name) => openDb().prepare('UPDATE products SET name = ? WHERE id = ?').run(name, id),
-  setActive: (id, active) => {
+  rename: (id: any, name: any) => openDb().prepare('UPDATE products SET name = ? WHERE id = ?').run(name, id),
+  setActive: (id: any, active: any) => {
     openDb().prepare('UPDATE products SET active = ? WHERE id = ?').run(active ? 1 : 0, id);
     openDb().prepare('UPDATE listings SET active = ? WHERE product_id = ?').run(active ? 1 : 0, id);
   },
-  remove: (id) => openDb().prepare('DELETE FROM products WHERE id = ?').run(id),
+  remove: (id: any) => openDb().prepare('DELETE FROM products WHERE id = ?').run(id),
 };
 
 // ---------- listings ----------
 export const listings = {
-  create({ productId, store, url, externalId = null, title = null }) {
+  create({ productId, store, url, externalId = null, title = null }: any) {
     const r = openDb()
       .prepare(
         'INSERT INTO listings (product_id, store, url, external_id, title, created_at) VALUES (?, ?, ?, ?, ?, ?)',
@@ -156,9 +156,9 @@ export const listings = {
       .run(productId, store, url, externalId, title, now());
     return Number(r.lastInsertRowid);
   },
-  get: (id) => openDb().prepare('SELECT * FROM listings WHERE id = ?').get(id),
-  byUrl: (url) => openDb().prepare('SELECT * FROM listings WHERE url = ?').get(url),
-  byProduct: (productId) => openDb().prepare('SELECT * FROM listings WHERE product_id = ? ORDER BY id').all(productId),
+  get: (id: any) => openDb().prepare('SELECT * FROM listings WHERE id = ?').get(id),
+  byUrl: (url: any) => openDb().prepare('SELECT * FROM listings WHERE url = ?').get(url),
+  byProduct: (productId: any) => openDb().prepare('SELECT * FROM listings WHERE product_id = ? ORDER BY id').all(productId),
   all: () => openDb().prepare('SELECT * FROM listings ORDER BY id').all(),
   due: (ts = now()) =>
     openDb()
@@ -167,10 +167,10 @@ export const listings = {
          WHERE l.active = 1 AND p.active = 1 AND l.next_check_at <= ? ORDER BY l.next_check_at`,
       )
       .all(ts),
-  remove: (id) => openDb().prepare('DELETE FROM listings WHERE id = ?').run(id),
-  setInterval: (id, min) => openDb().prepare('UPDATE listings SET interval_min = ? WHERE id = ?').run(min, id),
-  scheduleNow: (id) => openDb().prepare('UPDATE listings SET next_check_at = 0 WHERE id = ?').run(id),
-  markOk(id, { title, externalId, priceCents, effectiveCents, inStock, nextCheckAt }) {
+  remove: (id: any) => openDb().prepare('DELETE FROM listings WHERE id = ?').run(id),
+  setInterval: (id: any, min: any) => openDb().prepare('UPDATE listings SET interval_min = ? WHERE id = ?').run(min, id),
+  scheduleNow: (id: any) => openDb().prepare('UPDATE listings SET next_check_at = 0 WHERE id = ?').run(id),
+  markOk(id: any, { title, externalId, priceCents, effectiveCents, inStock, nextCheckAt }: any) {
     openDb()
       .prepare(
         `UPDATE listings SET title = COALESCE(?, title), external_id = COALESCE(?, external_id),
@@ -180,7 +180,7 @@ export const listings = {
       )
       .run(title ?? null, externalId ?? null, now(), now(), priceCents, effectiveCents, inStock ? 1 : 0, nextCheckAt, id);
   },
-  markFail(id, error, nextCheckAt) {
+  markFail(id: any, error: any, nextCheckAt: any) {
     openDb()
       .prepare(
         `UPDATE listings SET last_checked_at = ?, fail_count = fail_count + 1, last_error = ?, next_check_at = ?
@@ -192,9 +192,9 @@ export const listings = {
 
 // ---------- price points ----------
 export const prices = {
-  last: (listingId) =>
+  last: (listingId: any) =>
     openDb().prepare('SELECT * FROM price_points WHERE listing_id = ? ORDER BY ts DESC LIMIT 1').get(listingId),
-  insert(p) {
+  insert(p: any) {
     openDb()
       .prepare(
         `INSERT INTO price_points (listing_id, ts, price_cents, pix_cents, list_cents, effective_cents,
@@ -215,7 +215,7 @@ export const prices = {
       );
   },
   /** Histórico de todos os anúncios de um produto. */
-  historyForProduct: (productId, sinceTs = 0) =>
+  historyForProduct: (productId: any, sinceTs = 0) =>
     openDb()
       .prepare(
         `SELECT pp.*, l.store, l.url FROM price_points pp JOIN listings l ON l.id = pp.listing_id
@@ -223,7 +223,7 @@ export const prices = {
       )
       .all(productId, sinceTs),
   /** Estatísticas do preço efetivo (somente com estoque) de um produto. */
-  statsForProduct(productId, sinceTs = 0) {
+  statsForProduct(productId: any, sinceTs = 0) {
     const rows = openDb()
       .prepare(
         `SELECT pp.effective_cents AS c, pp.ts FROM price_points pp JOIN listings l ON l.id = pp.listing_id
@@ -231,7 +231,7 @@ export const prices = {
       )
       .all(productId, sinceTs);
     if (!rows.length) return null;
-    const vals = rows.map((r) => r.c).sort((a, b) => a - b);
+    const vals = rows.map((r: any) => r.c).sort((a: any, b: any) => a - b);
     const mid = Math.floor(vals.length / 2);
     const median = vals.length % 2 ? vals[mid] : Math.round((vals[mid - 1] + vals[mid]) / 2);
     return { min: vals[0], max: vals.at(-1), median, count: vals.length, firstTs: rows[0].ts };
@@ -241,7 +241,7 @@ export const prices = {
 // ---------- coupons ----------
 export const coupons = {
   /** Insere ou atualiza (por chave única) e devolve o id. */
-  upsert(c) {
+  upsert(c: any) {
     const d = openDb();
     const ts = now();
     d.prepare(
@@ -272,7 +272,7 @@ export const coupons = {
     );
   },
   /** Cupons ativos e válidos de uma loja (gerais ou deste anúncio). */
-  activeFor(store, listingId, ts = now()) {
+  activeFor(store: any, listingId: any, ts = now()) {
     return openDb()
       .prepare(
         `SELECT * FROM coupons WHERE (store = ? OR store = 'any') AND active = 1
@@ -283,7 +283,7 @@ export const coupons = {
       .map(rowToCoupon);
   },
   /** Desativa cupons de página de um anúncio que não apareceram na última leitura. */
-  expirePageCoupons(listingId, seenBefore) {
+  expirePageCoupons(listingId: any, seenBefore: any) {
     openDb()
       .prepare(`UPDATE coupons SET active = 0 WHERE listing_id = ? AND source = 'page' AND last_seen_at < ?`)
       .run(listingId, seenBefore);
@@ -299,10 +299,10 @@ export const coupons = {
       .prepare(`SELECT * FROM coupons ${onlyActive ? 'WHERE active = 1' : ''} ORDER BY last_seen_at DESC LIMIT 100`)
       .all()
       .map(rowToCoupon),
-  deactivate: (id) => openDb().prepare('UPDATE coupons SET active = 0 WHERE id = ?').run(id),
+  deactivate: (id: any) => openDb().prepare('UPDATE coupons SET active = 0 WHERE id = ?').run(id),
 };
 
-function rowToCoupon(r) {
+function rowToCoupon(r: any) {
   return {
     id: r.id,
     store: r.store,
@@ -324,27 +324,27 @@ function rowToCoupon(r) {
 
 // ---------- alerts ----------
 export const alerts = {
-  insert: ({ productId, listingId, effectiveCents, reasons }) =>
+  insert: ({ productId, listingId, effectiveCents, reasons }: any) =>
     openDb()
       .prepare('INSERT INTO alerts (product_id, listing_id, ts, effective_cents, reasons) VALUES (?, ?, ?, ?, ?)')
       .run(productId, listingId, now(), effectiveCents, reasons.join(',')),
-  lastForProduct: (productId) =>
+  lastForProduct: (productId: any) =>
     openDb().prepare('SELECT * FROM alerts WHERE product_id = ? ORDER BY ts DESC LIMIT 1').get(productId),
 };
 
 export const kv = {
-  get: (k) => openDb().prepare('SELECT value FROM kv WHERE key = ?').get(k)?.value,
-  set: (k, v) => openDb().prepare('INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v),
+  get: (k: any) => openDb().prepare('SELECT value FROM kv WHERE key = ?').get(k)?.value,
+  set: (k: any, v: any) => openDb().prepare('INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(k, v),
 };
 
 // ---------- itens já vistos (para não avisar a mesma oferta duas vezes) ----------
 export const seen = {
   /** já foi visto? */
-  has(source, externalId) {
+  has(source: any, externalId: any) {
     return Boolean(openDb().prepare('SELECT 1 FROM seen_items WHERE source = ? AND external_id = ?').get(source, String(externalId)));
   },
   /** true só na primeira vez que o item aparece */
-  markNew(source, externalId) {
+  markNew(source: any, externalId: any) {
     const r = openDb()
       .prepare('INSERT OR IGNORE INTO seen_items (source, external_id, ts) VALUES (?, ?, ?)')
       .run(source, String(externalId), now());
