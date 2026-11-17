@@ -48,6 +48,10 @@ export async function searchPelando(term) {
     const title = chunk.match(/"title":(?:\[0,)?"([^"]*)"/)?.[1];
     const price = chunk.match(/"price":(?:\[0,)?([\d.]+)/)?.[1];
     const temp = chunk.match(/"temperature":(?:\[0,)?(-?\d+)/)?.[1];
+    // ofertas encerradas aparecem na busca com status "expired": não podem virar aviso
+    const status = chunk.match(/"status":(?:\[0,)?"([^"]*)"/)?.[1] ?? null;
+    const createdAt = chunk.match(/"createdAt":(?:\[0,)?"([^"]*)"/)?.[1] ?? null;
+    if (status && status !== 'active') continue;
     const storeAt = chunk.indexOf('"store":');
     const store = storeAt >= 0 ? chunk.slice(storeAt).match(/"name":(?:\[0,)?"([^"]*)"/)?.[1] : null;
     if (!title || !price) continue;
@@ -58,6 +62,7 @@ export async function searchPelando(term) {
       priceCents: Math.round(Number(price) * 100),
       store: store ?? null,
       temperature: temp ? Number(temp) : null,
+      createdAt,
       url: `https://www.pelando.com.br/d/${slug}`,
     });
   }

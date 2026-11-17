@@ -97,7 +97,10 @@ export async function runPelandoAlerts(send = notify) {
   const terms = [...new Set(active.map((p) => searchTerm(p.keywords)).filter(Boolean))];
   const items = [];
   for (const t of terms) items.push(...(await searchPelando(t)));
+  const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
   for (const deal of items) {
+    const created = Date.parse(deal.createdAt);
+    if (!Number.isNaN(created) && Date.now() - created > maxAgeMs) continue;
     for (const p of active) {
       if (!matchesKeywords(deal.title, p.keywords) || !inRange(p, deal.priceCents)) continue;
       const isNew = seen.markNew('pelando', deal.externalId);

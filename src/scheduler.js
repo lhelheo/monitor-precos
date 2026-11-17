@@ -36,7 +36,7 @@ export function startScheduler() {
   const timer = setInterval(tick, 15_000);
   const housekeeping = setInterval(() => coupons.expireStale(48), 3600_000);
   const safe = (name, fn) => fn().catch((e) => log.warn(`${name}: ${e.message}`));
-  const pelandoTimer = setInterval(() => safe('Pelando', runPelandoAlerts), 10 * 60_000);
+  const pelandoTimer = setInterval(() => safe('Pelando', runPelandoAlerts), 5 * 60_000);
   const searchTimer = setInterval(() => safe('Busca automática', runSearchDiscovery), 60 * 60_000);
   setTimeout(() => safe('Busca automática', runSearchDiscovery), 30_000);
   setTimeout(() => safe('Pelando', runPelandoAlerts), 20_000);

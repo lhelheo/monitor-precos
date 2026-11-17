@@ -89,7 +89,7 @@ export const config = {
 
   promobit: {
     enabled: bool(process.env.PROMOBIT_ENABLED, true),
-    intervalMin: num(process.env.PROMOBIT_INTERVAL_MIN, 30),
+    intervalMin: num(process.env.PROMOBIT_INTERVAL_MIN, 10),
     maxAgeHours: num(process.env.PROMOBIT_MAX_AGE_HOURS, 48),
   },
   stores: loadStoreRules(),
