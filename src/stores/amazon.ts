@@ -4,17 +4,17 @@ import { BlockedError, cleanText, loadHtml, toCents } from './common.ts';
 
 export const id = 'amazon';
 export const name = 'Amazon';
-export const match = (u: any) => /(^|\.)amazon\.com\.br$/i.test(new URL(u).hostname);
-export const externalId = (u: any) => u.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase() ?? null;
+export const match = (u: string) => /(^|\.)amazon\.com\.br$/i.test(new URL(u).hostname);
+export const externalId = (u: string) => u.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase() ?? null;
 /** URL canônica curta, sem rastreadores. */
-export const canonical = (u: any) => {
+export const canonical = (u: string) => {
   const asin = externalId(u);
   return asin ? `https://www.amazon.com.br/dp/${asin}` : u;
 };
 
-const isCaptcha = (html: any) => /validateCaptcha|Digite os caracteres|api-services-support@amazon/i.test(html);
+const isCaptcha = (html: string) => /validateCaptcha|Digite os caracteres|api-services-support@amazon/i.test(html);
 
-export function parse(html: any) {
+export function parse(html: string) {
   const $ = loadHtml(html);
   if (isCaptcha(html)) return { blocked: true };
 
@@ -81,7 +81,7 @@ export function parse(html: any) {
   };
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   const target = canonical(url);
   let r = await fetchHtml(target);
   let data = r.status === 200 ? parse(r.html) : null;

@@ -1,23 +1,24 @@
 import { renderHtml } from '../http.ts';
+import type { CouponInput } from '../types.ts';
 import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.ts';
 
 export const id = 'shopee';
 export const name = 'Shopee';
-export const match = (u: any) => /(^|\.)shopee\.com\.br$/i.test(new URL(u).hostname);
+export const match = (u: string) => /(^|\.)shopee\.com\.br$/i.test(new URL(u).hostname);
 
 /** shopee.com.br/nome-i.SHOPID.ITEMID  ou  shopee.com.br/product/SHOPID/ITEMID */
-export function ids(u: any) {
+export function ids(u: string) {
   const p = new URL(u).pathname;
   const m = p.match(/-i\.(\d+)\.(\d+)/) || p.match(/\/product\/(\d+)\/(\d+)/);
   return m ? { shopId: m[1], itemId: m[2] } : null;
 }
-export const externalId = (u: any) => {
+export const externalId = (u: string) => {
   const x = ids(u);
   return x ? `${x.shopId}.${x.itemId}` : null;
 };
 
 // Preços na API interna da Shopee vêm multiplicados por 100000
-const shopeeCents = (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
+const shopeeCents = (v: unknown) => (typeof v === 'number' && v > 0 ? Math.round(v / 1000) : null);
 
 /** Interpreta a resposta da API interna da página de produto (pdp). Exportado para testes. */
 export function parseApi(json: any) {
@@ -33,11 +34,11 @@ export function parseApi(json: any) {
     listCents: before && before > (priceCents ?? 0) ? before : null,
     inStock: stock === undefined ? true : stock > 0,
     seller: json?.data?.shop_detailed?.name || null,
-    pageCoupons: [] as any[],
+    pageCoupons: [] as CouponInput[],
   };
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   // A Shopee monta a página via API interna assinada; capturamos a resposta dela no navegador.
   /** @type {any} */
   let apiData: any = null;
@@ -64,7 +65,7 @@ export async function scrape(url: any) {
       listCents: null,
       inStock: ld.inStock ?? true,
       seller: ld.seller,
-      pageCoupons: [] as any[],
+      pageCoupons: [] as CouponInput[],
       externalId: externalId(url),
     };
   }

@@ -1,5 +1,6 @@
 import { config } from './config.ts';
 import { log } from './log.ts';
+import type { Browser, Response, Route } from 'playwright';
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';
@@ -11,7 +12,7 @@ const HEADERS = {
 };
 
 /** GET simples. Devolve { status, url, html }. */
-export async function fetchHtml(url: any, { timeoutMs = 25000, headers = {} } = {}) {
+export async function fetchHtml(url: string, { timeoutMs = 25000, headers = {} } = {}) {
   const res = await fetch(url, {
     headers: { ...HEADERS, ...headers },
     redirect: 'follow',
@@ -21,7 +22,7 @@ export async function fetchHtml(url: any, { timeoutMs = 25000, headers = {} } = 
   return { status: res.status, url: res.url, html };
 }
 
-export async function fetchJson(url: any, { timeoutMs = 20000, headers = {} } = {}) {
+export async function fetchJson(url: string, { timeoutMs = 20000, headers = {} } = {}) {
   const res = await fetch(url, {
     headers: { 'user-agent': UA, accept: 'application/json', ...headers },
     signal: AbortSignal.timeout(timeoutMs),
@@ -40,8 +41,8 @@ export async function fetchJson(url: any, { timeoutMs = 20000, headers = {} } = 
 // Navegador (Playwright) compartilhado. Abre sob demanda e fecha quando ocioso,
 // para não ocupar ~300 MB de RAM o tempo todo numa VPS pequena.
 // ---------------------------------------------------------------------------
-let browserPromise: any = null;
-let idleTimer: any = null;
+let browserPromise: Promise<Browser> | null = null;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let inUse = 0;
 
 async function getBrowser() {
@@ -55,7 +56,7 @@ async function getBrowser() {
 }
 
 function scheduleIdleClose() {
-  clearTimeout(idleTimer);
+  clearTimeout(idleTimer ?? undefined);
   // 0 (padrão) = nunca fecha por ociosidade
   if (!(config.browser.idleCloseSec > 0)) return;
   idleTimer = setTimeout(async () => {
@@ -71,21 +72,21 @@ function scheduleIdleClose() {
  * Abre a URL num navegador real e devolve o HTML renderizado.
  * `onResponse(response)` permite capturar respostas JSON de APIs internas da página.
  * @param {string} url
- * @param {{ waitMs?: number, timeoutMs?: number, onResponse?: (res: any) => any }} [opts]
+ * @param {{ waitMs?: number, timeoutMs?: number, onResponse?: (res: Response) => unknown }} [opts]
  */
 export async function renderHtml(
   url: string,
-  { waitMs = 3500, timeoutMs = 45000, onResponse }: { waitMs?: number; timeoutMs?: number; onResponse?: (res: any) => any } = {},
+  { waitMs = 3500, timeoutMs = 45000, onResponse }: { waitMs?: number; timeoutMs?: number; onResponse?: (res: Response) => unknown } = {},
 ) {
   inUse++;
-  clearTimeout(idleTimer);
+  clearTimeout(idleTimer ?? undefined);
   let context;
   try {
     const browser = await getBrowser();
     context = await browser.newContext({ locale: 'pt-BR', userAgent: UA, viewport: { width: 1366, height: 900 } });
     const page = await context.newPage();
     // economiza banda/CPU: não baixa imagens, fontes e mídia
-    await page.route('**/*', (route: any) => {
+    await page.route('**/*', (route: Route) => {
       const t = route.request().resourceType();
       return ['image', 'media', 'font'].includes(t) ? route.abort() : route.continue();
     });
@@ -101,7 +102,7 @@ export async function renderHtml(
 }
 
 export async function closeBrowser() {
-  clearTimeout(idleTimer);
+  clearTimeout(idleTimer ?? undefined);
   const b = await browserPromise?.catch((): null => null);
   browserPromise = null;
   await b?.close().catch(() => {});

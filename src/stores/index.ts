@@ -10,7 +10,7 @@ const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee, zoom };
 // Só lojas habilitadas em config.enabledStores são aceitas (inclusive no bot)
 export const STORES = Object.fromEntries(Object.entries(ALL_STORES).filter(([id]) => config.enabledStores.includes(id)));
 
-export function storeFor(url: any) {
+export function storeFor(url: string) {
   let u;
   try {
     u = new URL(url);
@@ -22,7 +22,7 @@ export function storeFor(url: any) {
 }
 
 /** Remove parâmetros de rastreamento para a URL ficar estável (evita duplicar anúncios). */
-export function normalizeUrl(url: any) {
+export function normalizeUrl(url: string) {
   const store = storeFor(url);
   if (!store) return url;
   if ('canonical' in store && store.canonical) return store.canonical(url);
@@ -37,7 +37,7 @@ export function normalizeUrl(url: any) {
  * Coleta dados de um anúncio. Resultado normalizado:
  * { title, priceCents, pixCents, listCents, inStock, seller, pageCoupons[], externalId }
  */
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   const store = storeFor(url);
   if (!store) throw new Error(`Loja não suportada: ${url}`);
   const data = await store.scrape(url);

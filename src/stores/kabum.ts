@@ -4,11 +4,11 @@ import { BlockedError, findDeep, loadHtml, nextData, productFromJsonLd, toCents 
 
 export const id = 'kabum';
 export const name = 'KaBuM!';
-export const match = (u: any) => /(^|\.)kabum\.com\.br$/i.test(new URL(u).hostname);
-export const externalId = (u: any) => new URL(u).pathname.match(/\/produto\/(\d+)/)?.[1] ?? null;
+export const match = (u: string) => /(^|\.)kabum\.com\.br$/i.test(new URL(u).hostname);
+export const externalId = (u: string) => new URL(u).pathname.match(/\/produto\/(\d+)/)?.[1] ?? null;
 
 /** Extrai os dados da página de produto da KaBuM! (Next.js). Exportado para testes. */
-export function parse(html: any) {
+export function parse(html: string) {
   const $ = loadHtml(html);
   const nd = nextData($);
   const product = nd ? findDeep(nd.props?.pageProps, (o: any) => o.prices && 'priceWithDiscount' in o.prices) : null;
@@ -38,7 +38,7 @@ export function parse(html: any) {
   };
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   let r = await fetchHtml(url);
   let data = r.status === 200 ? parse(r.html) : null;
   if (!data) {

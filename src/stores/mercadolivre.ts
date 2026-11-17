@@ -1,4 +1,5 @@
 import { config } from '../config.ts';
+import type { CouponInput } from '../types.ts';
 import { fetchHtml, fetchJson, renderHtml } from '../http.ts';
 import { parseCoupons } from '../coupons/parser.ts';
 import { log } from '../log.ts';
@@ -6,10 +7,10 @@ import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCent
 
 export const id = 'mercadolivre';
 export const name = 'Mercado Livre';
-export const match = (u: any) => /(^|\.)mercadoli(vre|bre)\.com(\.br)?$/i.test(new URL(u).hostname);
+export const match = (u: string) => /(^|\.)mercadoli(vre|bre)\.com(\.br)?$/i.test(new URL(u).hostname);
 
 /** { item: 'MLB123...' } para anúncio, { product: 'MLB123...' } para página de catálogo (/p/). */
-export function ids(u: any) {
+export function ids(u: string) {
   const url = new URL(u);
   const q = url.searchParams.get('wid') || url.searchParams.get('item_id') ||
     url.searchParams.get('pdp_filters')?.match(/item_id[:%3A]+(MLB\d+)/i)?.[1];
@@ -17,13 +18,13 @@ export function ids(u: any) {
   const product = url.pathname.match(/\/p\/(MLB\d+)/i)?.[1];
   return { item: item ? item.toUpperCase() : null, product: product ? product.toUpperCase() : null };
 }
-export const externalId = (u: any) => {
+export const externalId = (u: string) => {
   const { item, product } = ids(u);
   return product || item;
 };
 
 // ---------------- API oficial (recomendada) ----------------
-let token: any = null;
+let token: string | null = null;
 let tokenExp = 0;
 
 async function getToken() {
@@ -37,14 +38,14 @@ async function getToken() {
     signal: AbortSignal.timeout(15000),
   });
   /** @type {any} */
-  const j: any = await res.json().catch(() => ({}));
+  const j = (await res.json().catch((): Record<string, unknown> => ({}))) as { access_token?: string; expires_in?: number; message?: string };
   if (!res.ok || !j.access_token) throw new Error(`Mercado Livre OAuth falhou: HTTP ${res.status} ${j.message || ''}`);
   token = j.access_token;
   tokenExp = Date.now() + (j.expires_in || 21600) * 1000;
   return token;
 }
 
-async function api(path: any) {
+async function api(path: string) {
   const t = await getToken();
   const r = await fetchJson(`https://api.mercadolibre.com${path}`, {
     headers: t ? { authorization: `Bearer ${t}` } : {},
@@ -53,12 +54,12 @@ async function api(path: any) {
   return r.json;
 }
 
-async function viaApi(u: any) {
+async function viaApi(u: string) {
   const { item, product } = ids(u);
   if (product && !item) {
     const p = await api(`/products/${product}`);
     const bb = p.buy_box_winner;
-    if (!bb) return { title: p.name, priceCents: null as number | null, inStock: false, seller: null as string | null, pageCoupons: [] as any[] };
+    if (!bb) return { title: p.name, priceCents: null as number | null, inStock: false, seller: null as string | null, pageCoupons: [] as CouponInput[] };
     return {
       title: p.name,
       priceCents: toCents(bb.price),
@@ -66,7 +67,7 @@ async function viaApi(u: any) {
       listCents: bb.original_price ? toCents(bb.original_price) : null,
       inStock: true,
       seller: bb.seller_id ? `seller ${bb.seller_id}` : null,
-      pageCoupons: [] as any[],
+      pageCoupons: [] as CouponInput[],
     };
   }
   const it = await api(`/items/${item}`);
@@ -77,14 +78,14 @@ async function viaApi(u: any) {
     listCents: it.original_price ? toCents(it.original_price) : null,
     inStock: it.status === 'active' && (it.available_quantity ?? 1) > 0,
     seller: it.seller_id ? `seller ${it.seller_id}` : null,
-    pageCoupons: [] as any[],
+    pageCoupons: [] as CouponInput[],
   };
 }
 
 // ---------------- HTML (alternativa) ----------------
-const isBlockedPage = (html: any) => /suspicious-traffic|account-verification|captcha/i.test(html.slice(0, 5000));
+const isBlockedPage = (html: string) => /suspicious-traffic|account-verification|captcha/i.test(html.slice(0, 5000));
 
-export function parse(html: any) {
+export function parse(html: string) {
   if (isBlockedPage(html)) return { blocked: true };
   const $ = loadHtml(html);
   const ld = productFromJsonLd($);
@@ -105,12 +106,12 @@ export function parse(html: any) {
   };
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   if (config.mercadoLivre.clientId) {
     try {
       return { ...(await viaApi(url)), externalId: externalId(url) };
-    } catch (e: any) {
-      log.warn(`ML API falhou, tentando página: ${e.message}`);
+    } catch (e) {
+      log.warn(`ML API falhou, tentando página: ${(e as Error).message}`);
     }
   }
   let r = await fetchHtml(url);

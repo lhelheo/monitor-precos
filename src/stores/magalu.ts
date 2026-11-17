@@ -4,12 +4,12 @@ import { BlockedError, cleanText, findDeep, loadHtml, metaPrice, nextData, produ
 
 export const id = 'magalu';
 export const name = 'Magalu';
-export const match = (u: any) => /(^|\.)(magazineluiza|magalu)\.com(\.br)?$/i.test(new URL(u).hostname);
-export const externalId = (u: any) => new URL(u).pathname.match(/\/p\/([a-z0-9]+)/i)?.[1] ?? null;
+export const match = (u: string) => /(^|\.)(magazineluiza|magalu)\.com(\.br)?$/i.test(new URL(u).hostname);
+export const externalId = (u: string) => new URL(u).pathname.match(/\/p\/([a-z0-9]+)/i)?.[1] ?? null;
 
-const isBlockedPage = (html: any) => /N[aã]o [eé] poss[ií]vel acessar a p[aá]gina|akamai-bot|Access Denied/i.test(html.slice(0, 4000));
+const isBlockedPage = (html: string) => /N[aã]o [eé] poss[ií]vel acessar a p[aá]gina|akamai-bot|Access Denied/i.test(html.slice(0, 4000));
 
-export function parse(html: any) {
+export function parse(html: string) {
   if (isBlockedPage(html)) return { blocked: true };
   const $ = loadHtml(html);
   const ld = productFromJsonLd($);
@@ -36,7 +36,7 @@ export function parse(html: any) {
   };
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   let r = await fetchHtml(url);
   let data = r.status === 200 ? parse(r.html) : null;
   if (!data || data.blocked) {

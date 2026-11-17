@@ -1,4 +1,5 @@
 import { fetchHtml } from '../http.ts';
+import type { CouponInput } from '../types.ts';
 import { BlockedError, findDeep, loadHtml, nextData } from './common.ts';
 
 /**
@@ -8,13 +9,13 @@ import { BlockedError, findDeep, loadHtml, nextData } from './common.ts';
  */
 export const id = 'zoom';
 export const name = 'Zoom (comparador)';
-export const match = (u: any) => /(^|\.)zoom\.com\.br$/i.test(new URL(u).hostname);
-export const externalId = (u: any) => new URL(u).pathname.split('/').filter(Boolean).pop() ?? null;
+export const match = (u: string) => /(^|\.)zoom\.com\.br$/i.test(new URL(u).hostname);
+export const externalId = (u: string) => new URL(u).pathname.split('/').filter(Boolean).pop() ?? null;
 
-const cents = (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v * 100) : null);
+const cents = (v: unknown) => (typeof v === 'number' && v > 0 ? Math.round(v * 100) : null);
 
 /** Dados do produto a partir da página do Zoom (JSON embutido). Exportado para testes. */
-export function parse(html: any, slug: any = null) {
+export function parse(html: string, slug: string | null = null) {
   const nd = nextData(loadHtml(html));
   const p = nd ? findDeep(nd.props, (o: any) => o.bestOffer && typeof o.price === 'number' && o.name && (!slug || o.seoUrl === slug)) : null;
   if (!p) return null;
@@ -25,12 +26,12 @@ export function parse(html: any, slug: any = null) {
     listCents: null as number | null,
     inStock: true,
     seller: p.bestOffer?.merchantName ?? null,
-    pageCoupons: [] as any[],
+    pageCoupons: [] as CouponInput[],
   };
 }
 
 /** Resultados de busca do Zoom. Exportado para descoberta automática. */
-export function parseSearch(html: any) {
+export function parseSearch(html: string) {
   const nd = nextData(loadHtml(html));
   const seen = new Set();
   const out: any[] = [];
@@ -54,13 +55,13 @@ export function parseSearch(html: any) {
   return out;
 }
 
-export async function searchZoom(term: any) {
+export async function searchZoom(term: string) {
   const r = await fetchHtml(`https://www.zoom.com.br/search?q=${encodeURIComponent(term)}`);
   if (r.status !== 200) throw new BlockedError(id, `busca HTTP ${r.status}`);
   return parseSearch(r.html);
 }
 
-export async function scrape(url: any) {
+export async function scrape(url: string) {
   const r = await fetchHtml(url);
   if (r.status !== 200) throw new BlockedError(id, `HTTP ${r.status}`);
   const data = parse(r.html, externalId(url));
