@@ -2,7 +2,7 @@ import { Bot } from 'grammy';
 import { config } from './config.js';
 import { coupons, listings, prices, products } from './db.js';
 import { checkListing } from './checker.js';
-import { storeFor, normalizeUrl, STORES } from './stores/index.js';
+import { storeFor, normalizeUrl, STORES } from './stores/index.ts';
 import { ingestText } from './coupons/ingest.ts';
 import { esc, formatDeal } from './format.js';
 import { setSender } from './notifier.js';

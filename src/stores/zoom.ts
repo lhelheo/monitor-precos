@@ -1,4 +1,4 @@
-import { fetchHtml } from '../http.js';
+import { fetchHtml } from '../http.ts';
 import { BlockedError, findDeep, loadHtml, nextData } from './common.ts';
 
 /**

@@ -1,6 +1,6 @@
 import { coupons, products } from '../db.js';
 import { log } from '../log.js';
-import { STORES } from '../stores/index.js';
+import { STORES } from '../stores/index.ts';
 import { detectStore, parseAnnouncedPrice, parseCoupons } from './parser.ts';
 import { extractWithLlm, llmEnabled } from './llm.js';
 

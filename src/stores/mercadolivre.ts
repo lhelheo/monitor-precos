@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { fetchHtml, fetchJson, renderHtml } from '../http.js';
+import { fetchHtml, fetchJson, renderHtml } from '../http.ts';
 import { parseCoupons } from '../coupons/parser.ts';
 import { log } from '../log.js';
 import { BlockedError, cleanText, loadHtml, metaPrice, productFromJsonLd, toCents } from './common.ts';
@@ -37,7 +37,7 @@ async function getToken() {
     signal: AbortSignal.timeout(15000),
   });
   /** @type {any} */
-  const j = await res.json().catch(() => ({}));
+  const j: any = await res.json().catch(() => ({}));
   if (!res.ok || !j.access_token) throw new Error(`Mercado Livre OAuth falhou: HTTP ${res.status} ${j.message || ''}`);
   token = j.access_token;
   tokenExp = Date.now() + (j.expires_in || 21600) * 1000;

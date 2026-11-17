@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { parseCoupons, parseAnnouncedPrice } from '../src/coupons/parser.ts';
 import { effectivePrice, couponBlocker } from '../src/pricing.ts';
 import { toCents } from '../src/stores/common.ts';
-import { parse as parseKabum } from '../src/stores/kabum.js';
-import { parse as parseAmazon } from '../src/stores/amazon.js';
-import { parseApi as parseShopee } from '../src/stores/shopee.js';
-import { normalizeUrl, storeFor } from '../src/stores/index.js';
+import { parse as parseKabum } from '../src/stores/kabum.ts';
+import { parse as parseAmazon } from '../src/stores/amazon.ts';
+import { parseApi as parseShopee } from '../src/stores/shopee.ts';
+import { normalizeUrl, storeFor } from '../src/stores/index.ts';
 import { matchesKeywords } from '../src/coupons/ingest.ts';
 import { alertReasons } from '../src/alerts.ts';
 

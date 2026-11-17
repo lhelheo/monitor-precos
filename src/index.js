@@ -7,7 +7,7 @@ import { startWeb } from './web/server.js';
 import { startPromoListener } from './coupons/telegram-listener.js';
 import { formatDeal } from './format.js';
 import { notify } from './notifier.js';
-import { closeBrowser } from './http.js';
+import { closeBrowser } from './http.ts';
 
 openDb();
 log.info('Monitor de preços iniciado');

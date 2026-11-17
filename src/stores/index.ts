@@ -1,9 +1,9 @@
-import * as kabum from './kabum.js';
-import * as amazon from './amazon.js';
-import * as mercadolivre from './mercadolivre.js';
-import * as magalu from './magalu.js';
-import * as shopee from './shopee.js';
-import * as zoom from './zoom.js';
+import * as kabum from './kabum.ts';
+import * as amazon from './amazon.ts';
+import * as mercadolivre from './mercadolivre.ts';
+import * as magalu from './magalu.ts';
+import * as shopee from './shopee.ts';
+import * as zoom from './zoom.ts';
 import { config } from '../config.js';
 
 const ALL_STORES = { kabum, amazon, mercadolivre, magalu, shopee, zoom };

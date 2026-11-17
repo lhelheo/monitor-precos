@@ -73,7 +73,10 @@ function scheduleIdleClose() {
  * @param {string} url
  * @param {{ waitMs?: number, timeoutMs?: number, onResponse?: (res: any) => any }} [opts]
  */
-export async function renderHtml(url, { waitMs = 3500, timeoutMs = 45000, onResponse } = {}) {
+export async function renderHtml(
+  url: string,
+  { waitMs = 3500, timeoutMs = 45000, onResponse }: { waitMs?: number; timeoutMs?: number; onResponse?: (res: any) => any } = {},
+) {
   inUse++;
   clearTimeout(idleTimer);
   let context;

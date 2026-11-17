@@ -1,7 +1,7 @@
 import { config } from './config.js';
 import { REASON_LABEL } from './alerts.ts';
 import { fmt } from './stores/common.ts';
-import { STORES } from './stores/index.js';
+import { STORES } from './stores/index.ts';
 
 export const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
 

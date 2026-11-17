@@ -1,4 +1,4 @@
-import { fetchHtml, renderHtml } from '../http.js';
+import { fetchHtml, renderHtml } from '../http.ts';
 import { parseCoupons } from '../coupons/parser.ts';
 import { BlockedError, cleanText, loadHtml, toCents } from './common.ts';
 

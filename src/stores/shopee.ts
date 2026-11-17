@@ -1,4 +1,4 @@
-import { renderHtml } from '../http.js';
+import { renderHtml } from '../http.ts';
 import { BlockedError, cleanText, loadHtml, productFromJsonLd } from './common.ts';
 
 export const id = 'shopee';

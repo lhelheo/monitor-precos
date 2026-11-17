@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { openDb, closeDb, products, listings, coupons, prices } from '../src/db.js';
-import { scrape } from '../src/stores/index.js';
+import { scrape } from '../src/stores/index.ts';
 import { ingestText } from '../src/coupons/ingest.ts';
 import { effectivePrice } from '../src/pricing.ts';
-import { closeBrowser } from '../src/http.js';
+import { closeBrowser } from '../src/http.ts';
 
 const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mp-')), 'test.db');
 openDb(tmp);
