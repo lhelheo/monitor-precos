@@ -1,6 +1,8 @@
 services:
   monitor:
     build: .
+    # imagem publicada pelo workflow de release: a VPS usa `docker compose pull`
+    image: ghcr.io/lhelheo/monitor-precos:latest
     restart: unless-stopped
     env_file: .env
     environment:
