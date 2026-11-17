@@ -43,7 +43,7 @@ function confidenceFor(c) {
  * Processa uma mensagem de canal de promoção (ou texto enviado via /cupom).
  * Salva os cupons encontrados e devolve os produtos monitorados que a mensagem menciona.
  *
- * @returns {{ coupons: object[], deal: object|null, matchedProducts: object[] }}
+ * @returns {Promise<{ coupons: any[], deal: any, matchedProducts: any[] }>}
  */
 export async function ingestText(text, { source = 'telegram', origin = '', forceConfidence = null } = {}) {
   if (!text || text.length < 8) return { coupons: [], deal: null, matchedProducts: [] };

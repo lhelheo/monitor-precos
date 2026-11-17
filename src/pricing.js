@@ -8,8 +8,13 @@ const norm = (s) =>
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
 
-/** Motivo pelo qual um cupom não se aplica (ou null se aplica). */
-export function couponBlocker(coupon, { priceCents, title, user = config.user }) {
+/**
+ * Motivo pelo qual um cupom não se aplica (ou null se aplica).
+ * @param {any} coupon
+ * @param {{ priceCents: number, title?: any, user?: { firstPurchase?: boolean, amazonPrime?: boolean } }} options
+ */
+export function couponBlocker(coupon, options) {
+  const { priceCents, title, user = config.user } = options;
   if (!coupon.kind || !coupon.value) return 'sem valor conhecido';
   if (coupon.conditions?.firstPurchase && !user.firstPurchase) return 'só primeira compra';
   if (coupon.minCents && priceCents < coupon.minCents) return 'abaixo do valor mínimo';
@@ -33,11 +38,13 @@ export function couponDiscount(coupon, baseCents) {
  *   cashback (opcional, por loja)
  * Confiança do resultado = confiança do cupom usado (ou "confirmed" se nenhum).
  *
- * @param scraped  resultado do coletor
- * @param coupons  cupons da loja (página + canais + manuais)
- * @param opts.minConfidence  menor confiança aceita para entrar no preço efetivo
+ * @param {any} scraped  resultado do coletor
+ * @param {any[]} [coupons]  cupons da loja (página + canais + manuais)
+ * @param {{ minConfidence?: string, user?: { firstPurchase?: boolean, amazonPrime?: boolean }, rules?: any }} [options]
+ *   minConfidence: menor confiança aceita para entrar no preço efetivo
  */
-export function effectivePrice(scraped, coupons = [], { minConfidence = 'probable', user = config.user, rules } = {}) {
+export function effectivePrice(scraped, coupons = [], options = {}) {
+  const { minConfidence = 'probable', user = config.user, rules } = options;
   const r = rules ?? config.stores[scraped.store] ?? {};
   const price = scraped.priceCents;
   if (!price) return null;

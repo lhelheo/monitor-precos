@@ -32,8 +32,12 @@ export function formatAlert({ product, listing, scraped, eff, reasons, statsAll 
   return lines.join('\n');
 }
 
-/** Mensagem de canal de promoção que menciona um produto monitorado. */
-export function formatDeal({ product, text, deal, coupons, channel, link }) {
+/**
+ * Mensagem de canal de promoção que menciona um produto monitorado.
+ * @param {{ product: any, text: string, deal: any, coupons: any[], channel: string, link?: string }} args
+ */
+export function formatDeal(args) {
+  const { product, text, deal, coupons, channel, link } = args;
   const lines = [`📣 <b>${esc(product.name)}</b> apareceu em <b>${esc(channel)}</b>`];
   if (deal?.finalCents) lines.push(`Preço anunciado: <b>${fmt(deal.finalCents)}</b>${product.target_cents ? ` (alvo ${fmt(product.target_cents)})` : ''}`);
   for (const c of coupons) lines.push(`🎟️ <code>${esc(c.code)}</code> (${CONF[c.confidence]})`);

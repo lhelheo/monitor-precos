@@ -51,6 +51,7 @@ export async function runSearchDiscovery() {
   for (const p of activeProducts()) {
     const term = searchTerm(p.keywords);
     if (!term) continue;
+    /** @type {Array<[string, () => Promise<any[]>]>} */
     const sources = [
       // a Kabum é sensível à ordem das palavras: se a busca vier vazia, tenta com as palavras invertidas
       ['kabum', async () => {

@@ -7,6 +7,7 @@ import { toCents } from '../stores/common.js';
  *      "🎟️ Cupom GAMER15 — 15% OFF em games acima de R$ 200, só no app, até 23:59"
  */
 
+/** @type {[string, RegExp][]} */
 const STORE_PATTERNS = [
   ['kabum', /kabum|kbum\.me/i],
   ['amazon', /amazon|amzn\.to|a\.co\//i],

@@ -39,6 +39,7 @@ export function parseApi(json) {
 
 export async function scrape(url) {
   // A Shopee monta a página via API interna assinada; capturamos a resposta dela no navegador.
+  /** @type {any} */
   let apiData = null;
   const r = await renderHtml(url, {
     waitMs: 6000,

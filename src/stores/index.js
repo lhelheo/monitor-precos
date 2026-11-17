@@ -25,7 +25,7 @@ export function storeFor(url) {
 export function normalizeUrl(url) {
   const store = storeFor(url);
   if (!store) return url;
-  if (store.canonical) return store.canonical(url);
+  if ('canonical' in store && store.canonical) return store.canonical(url);
   const u = new URL(url);
   u.hash = '';
   const keep = store.id === 'mercadolivre' ? ['wid', 'item_id', 'pdp_filters'] : [];

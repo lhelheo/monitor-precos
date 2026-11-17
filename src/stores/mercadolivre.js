@@ -36,6 +36,7 @@ async function getToken() {
     body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }),
     signal: AbortSignal.timeout(15000),
   });
+  /** @type {any} */
   const j = await res.json().catch(() => ({}));
   if (!res.ok || !j.access_token) throw new Error(`Mercado Livre OAuth falhou: HTTP ${res.status} ${j.message || ''}`);
   token = j.access_token;

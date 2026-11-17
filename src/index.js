@@ -43,4 +43,4 @@ async function shutdown(sig) {
 }
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('unhandledRejection', (e) => log.error(`Promise rejeitada: ${e?.stack || e}`));
+process.on('unhandledRejection', (e) => log.error(`Promise rejeitada: ${/** @type {any} */ (e)?.stack || e}`));

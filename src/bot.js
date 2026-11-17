@@ -192,6 +192,9 @@ export function createBot() {
   });
 
   bot.on('message:text', (ctx) => reply(ctx, 'Não entendi. Use /ajuda para ver os comandos.'));
-  bot.catch((err) => log.error(`Bot: ${err.error?.message || err.message}`));
+  bot.catch((err) => {
+    const e = /** @type {any} */ (err);
+    log.error(`Bot: ${e.error?.message || e.message}`);
+  });
   return bot;
 }

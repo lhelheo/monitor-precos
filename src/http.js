@@ -70,6 +70,8 @@ function scheduleIdleClose() {
 /**
  * Abre a URL num navegador real e devolve o HTML renderizado.
  * `onResponse(response)` permite capturar respostas JSON de APIs internas da página.
+ * @param {string} url
+ * @param {{ waitMs?: number, timeoutMs?: number, onResponse?: (res: any) => any }} [opts]
  */
 export async function renderHtml(url, { waitMs = 3500, timeoutMs = 45000, onResponse } = {}) {
   inUse++;
