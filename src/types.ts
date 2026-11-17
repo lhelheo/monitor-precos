@@ -23,8 +23,8 @@ export interface CouponConditions {
 /** Cupom encontrado em uma página, mensagem ou comando, antes de ser salvo. */
 export interface CouponInput {
   code?: string | null;
-  kind: CouponKind | null;
-  value: number;
+  kind?: CouponKind | null;
+  value?: number;
   minCents?: number | null;
   maxDiscountCents?: number | null;
   conditions?: CouponConditions;

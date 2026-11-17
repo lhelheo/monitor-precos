@@ -1,8 +1,12 @@
 import { config } from './config.ts';
+import type { CouponInput, ScrapedPage } from './types.ts';
+
+/** Cupom usado no cálculo: vindo da página, de canal ou do banco. */
+export type PriceCoupon = CouponInput & { code?: string | null; source?: string };
 
 const RANK: Record<string, number> = { confirmed: 3, probable: 2, unverified: 1 };
 
-const norm = (s: any) =>
+const norm = (s: unknown): string =>
   String(s || '')
     .toLowerCase()
     .normalize('NFD')
@@ -28,8 +32,8 @@ export function couponBlocker(
   return null;
 }
 
-export function couponDiscount(coupon: any, baseCents: any) {
-  let d = coupon.kind === 'pct' ? Math.round((baseCents * coupon.value) / 100) : Math.round(coupon.value * 100);
+export function couponDiscount(coupon: PriceCoupon, baseCents: number): number {
+  let d = coupon.kind === 'pct' ? Math.round((baseCents * (coupon.value ?? 0)) / 100) : Math.round((coupon.value ?? 0) * 100);
   if (coupon.maxDiscountCents) d = Math.min(d, coupon.maxDiscountCents);
   return Math.max(0, Math.min(d, baseCents));
 }
@@ -72,9 +76,9 @@ export function effectivePrice(
     return { coupon: c, blocker, discountCents: blocker ? 0 : couponDiscount(c, base) };
   });
 
-  const usable = evaluated.filter((e) => !e.blocker && RANK[e.coupon.confidence] >= RANK[minConfidence]);
+  const usable = evaluated.filter((e) => !e.blocker && RANK[e.coupon.confidence ?? 'unverified'] >= RANK[minConfidence]);
   // melhor desconto; empate => maior confiança
-  usable.sort((a, b) => b.discountCents - a.discountCents || RANK[b.coupon.confidence] - RANK[a.coupon.confidence]);
+  usable.sort((a, b) => b.discountCents - a.discountCents || RANK[b.coupon.confidence ?? 'unverified'] - RANK[a.coupon.confidence ?? 'unverified']);
   const best = usable[0] && usable[0].discountCents > 0 ? usable[0] : null;
 
   let effective = base - (best?.discountCents ?? 0);
@@ -91,7 +95,7 @@ export function effectivePrice(
       code: e.coupon.code,
       label: couponLabel(e.coupon),
       confidence: e.coupon.confidence,
-      blocker: e.blocker || (RANK[e.coupon.confidence] < RANK[minConfidence] ? 'confiança baixa' : null),
+      blocker: e.blocker || (RANK[e.coupon.confidence ?? 'unverified'] < RANK[minConfidence] ? 'confiança baixa' : null),
       wouldBeCents: base - couponDiscount(e.coupon, base),
     }))
     .filter((h) => h.wouldBeCents < effective);
@@ -120,7 +124,7 @@ export function effectivePrice(
   };
 }
 
-export function couponLabel(c: any) {
+export function couponLabel(c: PriceCoupon): string {
   const v = c.kind === 'pct' ? `${c.value}%` : `R$ ${Number(c.value).toFixed(2).replace('.', ',')}`;
   const parts = [c.code ? `${c.code} (${v})` : `cupom ${v}`];
   if (c.conditions?.clipCoupon) parts.push('marcar cupom na página');

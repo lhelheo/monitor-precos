@@ -1,12 +1,21 @@
 import { coupons, products } from '../db.ts';
 import { log } from '../log.ts';
 import { STORES } from '../stores/index.ts';
-import { detectStore, parseAnnouncedPrice, parseCoupons } from './parser.ts';
+import { detectStore, parseAnnouncedPrice, parseCoupons, type DealInfo, type ParsedCoupon } from './parser.ts';
+import type { Confidence, CouponConditions, CouponKind, ProductRow } from '../types.ts';
+import type { CouponWrite } from '../db.ts';
+
+/** Resultado da ingestão: cupons salvos, oferta detectada e produtos monitorados citados. */
+export interface IngestResult {
+  coupons: CouponWrite[];
+  deal: DealInfo | null;
+  matchedProducts: ProductRow[];
+}
 import { extractWithLlm, llmEnabled } from './llm.ts';
 
 const VALID_STORES = new Set(Object.keys(STORES));
 
-const norm = (s: any) =>
+const norm = (s: unknown): string =>
   String(s || '')
     .toLowerCase()
     .normalize('NFD')
@@ -16,24 +25,24 @@ const norm = (s: any) =>
  * Palavras-chave do produto: "dualsense -edge -capa" => precisa ter "dualsense" e não pode ter "edge" nem "capa".
  * Termos entre aspas viram frase: "\"midnight black\" dualsense".
  */
-export function matchesKeywords(text: any, keywords: any) {
+export function matchesKeywords(text: string | null | undefined, keywords: string | null | undefined): boolean {
   if (!keywords) return false;
   // "PlayStation5" escrito junto (comum em títulos) vira "playstation 5"
   const t = norm(text).replace(/playstation(\d)/g, 'playstation $1');
   const terms = [...keywords.matchAll(/(-?)"([^"]+)"|(-?)(\S+)/g)].map((m) => ({
     neg: Boolean(m[1] || m[3]),
     // "(console|slim|digital)" = qualquer uma das alternativas
-    alts: (m[2] || m[4]).replace(/^\(|\)$/g, '').split('|').map((a: any) => norm(a)),
+    alts: (m[2] || m[4]).replace(/^\(|\)$/g, '').split('|').map((a: string) => norm(a)),
   }));
   // palavra inteira (não pedaço): "-pro" não pode excluir "produto"
-  const has = (term: any) => new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(t);
+  const has = (term: string) => new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(t);
   const pos = terms.filter((x) => !x.neg);
   if (!pos.length) return false;
   return pos.every((x) => x.alts.some(has)) && terms.filter((x) => x.neg).every((x) => !x.alts.some(has));
 }
 
 /** Confiança de um cupom vindo de canal/agregador. */
-function confidenceFor(c: any) {
+function confidenceFor(c: { kind?: CouponKind | null; value?: number; conditions?: CouponConditions }): Confidence {
   if (!c.kind || !c.value) return 'unverified';
   if (c.conditions?.selectedItems) return 'unverified';
   return 'probable';
@@ -45,7 +54,10 @@ function confidenceFor(c: any) {
  *
  * @returns {Promise<{ coupons: any[], deal: any, matchedProducts: any[] }>}
  */
-export async function ingestText(text: any, { source = 'telegram', origin = '', forceConfidence = null }: any = {}) {
+export async function ingestText(
+  text: string,
+  { source = 'telegram', origin = '', forceConfidence = null }: { source?: string; origin?: string; forceConfidence?: Confidence | null } = {},
+): Promise<IngestResult> {
   if (!text || text.length < 8) return { coupons: [], deal: null, matchedProducts: [] };
   const hasCoupon = /cupo[mn]|c[oó]digo/i.test(text);
   const fallbackStore = detectStore(text);
@@ -59,7 +71,7 @@ export async function ingestText(text: any, { source = 'telegram', origin = '', 
     };
   }
 
-  const saved = [];
+  const saved: CouponWrite[] = [];
   for (const c of parsed.coupons) {
     const store = VALID_STORES.has(c.store) ? c.store : fallbackStore ?? 'any';
     if (!c.code) continue; // sem código não dá para usar
@@ -76,11 +88,11 @@ export async function ingestText(text: any, { source = 'telegram', origin = '', 
     try {
       coupons.upsert(coupon);
       saved.push(coupon);
-    } catch (e: any) {
-      log.warn(`Cupom ignorado (${coupon.code}): ${e.message}`);
+    } catch (e) {
+      log.warn(`Cupom ignorado (${coupon.code}): ${(e as Error).message}`);
     }
   }
 
-  const matchedProducts = products.list().filter((p: any) => p.active && matchesKeywords(text, p.keywords));
+  const matchedProducts = products.list().filter((p) => p.active && matchesKeywords(text, p.keywords));
   return { coupons: saved, deal: parsed.deal, matchedProducts };
 }

@@ -101,7 +101,7 @@ export function parse(html: string) {
     listCents: listCents && listCents > priceCents ? listCents : null,
     inStock: ld?.inStock ?? !/indispon[ií]vel|pausad/i.test($('.ui-pdp-stock-information, .ui-pdp-message').text()),
     seller: ld?.seller || cleanText($('.ui-pdp-seller__link-trigger').first().text()) || null,
-    pageCoupons: parseCoupons(couponText, { store: id }).map((c) => ({ ...c, confidence: c.kind ? 'confirmed' : 'probable' })),
+    pageCoupons: parseCoupons(couponText, { store: id }).map((c) => ({ ...c, confidence: c.kind ? ('confirmed' as const) : ('probable' as const) })),
   };
 }
 

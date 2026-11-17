@@ -52,10 +52,10 @@ export function parse(html: string) {
     const v = boxMatch[1];
     pageCoupons.push({
       code: null as string | null,
-      kind: v.includes('%') ? 'pct' : 'fixed',
+      kind: v.includes('%') ? ('pct' as const) : ('fixed' as const),
       value: v.includes('%') ? Number(v.replace(/[^\d]/g, '')) : (toCents(v) ?? 0) / 100,
       conditions: { clipCoupon: true },
-      confidence: 'confirmed',
+      confidence: 'confirmed' as const,
       rawText: couponBox.slice(0, 300),
     });
   }
@@ -66,7 +66,7 @@ export function parse(html: string) {
     for (const c of parseCoupons(cleanText($(el).text()), { store: id })) {
       if (seen.has(c.code)) continue;
       seen.add(c.code);
-      pageCoupons.push({ ...c, confidence: c.kind ? 'confirmed' : 'probable' });
+      pageCoupons.push({ ...c, confidence: c.kind ? ('confirmed' as const) : ('probable' as const) });
     }
   });
 

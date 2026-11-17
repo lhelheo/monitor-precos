@@ -87,6 +87,7 @@ export function createBot() {
     listings.scheduleNow(lid);
     await reply(ctx, `✅ Anúncio #${lid} (${store.name}) adicionado. Verificando agora…`);
     const l = listings.get(lid);
+    if (!l) return reply(ctx, 'Anúncio não encontrado.');
     const r = await checkListing(l, { silent: true });
     if (!r.ok) return reply(ctx, `⚠️ Não consegui ler o anúncio: <code>${esc(r.error)}</code>\nVou tentar de novo automaticamente.`);
     return reply(ctx, `Preço atual: <b>${fmt(r.eff.effectiveCents)}</b> (${esc(r.scraped?.title?.slice(0, 80) ?? '')})`);

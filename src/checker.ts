@@ -7,16 +7,17 @@ import { BlockedError } from './stores/common.ts';
 import { esc, formatAlert } from './format.ts';
 import { notify } from './notifier.ts';
 import { log } from './log.ts';
+import type { ListingRow } from './types.ts';
 
 const HEARTBEAT_MS = 6 * 3600_000; // grava ponto mesmo sem mudança a cada 6h (gráfico contínuo)
 
-function nextCheck(listing: any, now = Date.now()) {
+function nextCheck(listing: ListingRow, now = Date.now()) {
   const min = listing.interval_min || config.scheduler.defaultIntervalMin;
   const jitter = 1 + (Math.random() * 2 - 1) * config.scheduler.jitterPct;
   return now + Math.round(min * 60_000 * jitter);
 }
 
-function backoff(listing: any, err: any, now = Date.now()) {
+function backoff(listing: ListingRow, err: unknown, now = Date.now()) {
   const min = listing.interval_min || config.scheduler.defaultIntervalMin;
   const fails = (listing.fail_count || 0) + 1;
   const factor = err instanceof BlockedError ? 3 : 2;
@@ -24,27 +25,27 @@ function backoff(listing: any, err: any, now = Date.now()) {
 }
 
 /** Verifica um anúncio: coleta, calcula preço efetivo, grava histórico e dispara alertas. */
-export async function checkListing(listing: any, { silent = false } = {}) {
+export async function checkListing(listing: ListingRow, { silent = false }: { silent?: boolean } = {}) {
   const product = products.get(listing.product_id);
   if (!product) throw new Error(`produto ${listing.product_id} não existe`);
   const startedAt = Date.now();
   let scraped;
   try {
     scraped = await scrape(listing.url);
-  } catch (err: any) {
-    listings.markFail(listing.id, err.message, backoff(listing, err));
-    log.warn(`#${listing.id} ${listing.store}: ${err.message}`);
+  } catch (err) {
+    listings.markFail(listing.id, (err as Error).message, backoff(listing, err));
+    log.warn(`#${listing.id} ${listing.store}: ${(err as Error).message}`);
     // avisa uma única vez quando um anúncio começa a falhar seguidamente
     if (listing.fail_count + 1 === 5 && !silent) {
-      await notify(`⚠️ <b>${esc(product?.name)}</b> (${STORES[listing.store]?.name}) falhou 5 vezes seguidas:\n<code>${esc(err.message)}</code>`);
+      await notify(`⚠️ <b>${esc(product?.name)}</b> (${STORES[listing.store]?.name}) falhou 5 vezes seguidas:\n<code>${esc((err as Error).message)}</code>`);
     }
-    return { ok: false, error: err.message };
+    return { ok: false, error: (err as Error).message };
   }
 
   // cupons que aparecem na própria página do anúncio
   for (const c of scraped.pageCoupons || []) {
     if (!c.kind || !c.value) continue;
-    coupons.upsert({ ...c, store: listing.store, listingId: listing.id, source: 'page' });
+    coupons.upsert({ ...c, kind: c.kind, value: c.value, store: listing.store, listingId: listing.id, source: 'page', confidence: c.confidence ?? ('unverified' as const) });
   }
   coupons.expirePageCoupons(listing.id, startedAt);
 

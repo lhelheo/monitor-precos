@@ -1,4 +1,33 @@
 import { toCents } from '../stores/common.ts';
+import type { CouponConditions, CouponKind } from '../types.ts';
+
+/** Cupom extraído de um texto, antes de ser gravado. */
+export interface ParsedCoupon {
+  code: string;
+  kind?: CouponKind;
+  value?: number;
+  minCents?: number | null;
+  maxDiscountCents?: number | null;
+  conditions: CouponConditions;
+  validUntil: number | null;
+  store: string | null;
+  rawText: string;
+}
+
+/** Campos de valor extraídos do trecho do texto. */
+interface Amounts {
+  kind?: CouponKind;
+  value?: number;
+  minCents?: number | null;
+  maxDiscountCents?: number | null;
+}
+
+/** Informação do produto anunciado numa mensagem. */
+export interface DealInfo {
+  store: string | null;
+  product: string;
+  finalCents: number | null;
+}
 
 /**
  * Parser de cupons em texto livre (página da loja, mensagens de canais de promoção, /cupom do bot).
@@ -15,8 +44,8 @@ const STORE_PATTERNS: [string, RegExp][] = [
   ['shopee', /shopee|shp\.ee/i],
 ];
 
-export function detectStore(text: any) {
-  for (const [store, re] of STORE_PATTERNS) if (re.test(text)) return store;
+export function detectStore(text: string | null | undefined): string | null {
+  for (const [store, re] of STORE_PATTERNS) if (re.test(text ?? '')) return store;
   return null;
 }
 
@@ -31,7 +60,7 @@ const CODE_RE =
   /(?:cupo[mn]s?|c[oó]digo|code)\s*(?:de\s+desconto\s*)?(?:promocional\s*)?[:\-–—]?\s*["'\u201C\u201D\u2018\u2019\x60*_]*\s*([A-Za-z0-9][A-Za-z0-9_-]{3,24})\b/gi;
 
 /** Data de validade a partir de "até 23:59", "até 20/11", "válido até 30/11/2026 às 10h". */
-export function parseValidity(text: any, ref = new Date()) {
+export function parseValidity(text: string, ref: Date = new Date()): number | null {
   const dm = text.match(/at[eé]\s+(?:o\s+dia\s+)?(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[^\d]{1,6}(\d{1,2})[:h](\d{2})?)?/i);
   if (dm) {
     const year = dm[3] ? (dm[3].length === 2 ? 2000 + Number(dm[3]) : Number(dm[3])) : ref.getFullYear();
@@ -51,8 +80,8 @@ export function parseValidity(text: any, ref = new Date()) {
   return null;
 }
 
-function parseAmounts(seg: string): any {
-  const out: any = {};
+function parseAmounts(seg: string): Amounts {
+  const out: Amounts = {};
   const pct = seg.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%/);
   const fixed =
     seg.match(/R\$\s*([\d.]+(?:,\d{1,2})?)\s*(?:de\s+)?(?:off|desconto|de\s+volta)/i) ||
@@ -76,8 +105,8 @@ function parseAmounts(seg: string): any {
   return out;
 }
 
-function parseConditions(seg: string): any {
-  const c: any = {};
+function parseConditions(seg: string): CouponConditions {
+  const c: CouponConditions = {};
   if (/primeira\s+compra|1[ªa]\s+compra|novos?\s+clientes?/i.test(seg)) c.firstPurchase = true;
   if (/\bno\s+app\b|\bpelo\s+app\b|s[oó]\s+(?:no\s+)?app|aplicativo|\bapp\b/i.test(seg)) c.appOnly = true;
   if (/selecionad[oa]s|participantes|categorias?\s+selecionad/i.test(seg)) c.selectedItems = true;
@@ -91,10 +120,13 @@ function parseConditions(seg: string): any {
  * Extrai cupons de um texto. Retorna lista de { code, kind, value, minCents, maxDiscountCents, conditions, validUntil, store, rawText }.
  * Cupons sem valor (kind) ainda são retornados — o valor pode já estar embutido no preço anunciado na mensagem.
  */
-export function parseCoupons(text: any, { store = null, now = new Date() }: any = {}) {
+export function parseCoupons(
+  text: string | null | undefined,
+  { store = null, now = new Date() }: { store?: string | null; now?: Date } = {},
+): ParsedCoupon[] {
   if (!text) return [];
   const flat = String(text).replace(/ /g, ' ');
-  const results: any[] = [];
+  const results: ParsedCoupon[] = [];
   const matches = [...flat.matchAll(CODE_RE)].filter((m) => {
     const code = m[1];
     return /[A-Z]/.test(code) && code === code.toUpperCase() && !NOT_CODES.has(code);
@@ -119,7 +151,7 @@ export function parseCoupons(text: any, { store = null, now = new Date() }: any 
   });
 
   // de-duplica por código (mantém o que tem valor)
-  const byCode = new Map();
+  const byCode = new Map<string, ParsedCoupon>();
   for (const r of results) {
     const prev = byCode.get(r.code);
     if (!prev || (!prev.kind && r.kind)) byCode.set(r.code, r);
@@ -128,10 +160,10 @@ export function parseCoupons(text: any, { store = null, now = new Date() }: any 
 }
 
 /** "R$ 349,90" mais baixo presente numa mensagem de promoção (preço anunciado). */
-export function parseAnnouncedPrice(text: any) {
+export function parseAnnouncedPrice(text: string | null | undefined): number | null {
   const vals = [...String(text).matchAll(/R\$\s*([\d.]+(?:,\d{1,2})?)/g)]
-    .filter((m) => !/^\s*(?:de\s+)?(?:off|desconto)/i.test(text.slice(m.index + m[0].length, m.index + m[0].length + 12)))
-    .filter((m) => !/(?:acima|partir|m[ií]nimo|limit|m[aá]ximo|de:|\bde\b)\s*$/i.test(text.slice(Math.max(0, m.index - 14), m.index)))
+    .filter((m) => !/^\s*(?:de\s+)?(?:off|desconto)/i.test(String(text).slice(m.index + m[0].length, m.index + m[0].length + 12)))
+    .filter((m) => !/(?:acima|partir|m[ií]nimo|limit|m[aá]ximo|de:|\bde\b)\s*$/i.test(String(text).slice(Math.max(0, m.index - 14), m.index)))
     .map((m) => toCents(m[1]))
     .filter((c) => c && c > 100);
   return vals.length ? Math.min(...(vals as number[])) : null;

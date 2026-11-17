@@ -32,7 +32,7 @@ export function parse(html: string) {
     listCents: list && list > priceCents ? list : null,
     inStock: ld?.inStock ?? true,
     seller: ld?.seller || null,
-    pageCoupons: parseCoupons(promoText, { store: id }).map((c) => ({ ...c, confidence: c.kind ? 'confirmed' : 'probable' })),
+    pageCoupons: parseCoupons(promoText, { store: id }).map((c) => ({ ...c, confidence: c.kind ? ('confirmed' as const) : ('probable' as const) })),
   };
 }
 

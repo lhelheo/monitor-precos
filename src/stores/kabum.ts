@@ -33,7 +33,7 @@ export function parse(html: string) {
   const pageCoupons: CouponInput[] = parseCoupons(stampText, { store: id }).map((c) => ({
     ...c,
     // selo da própria página do item ("neste item") => confirmado
-    confidence: c.kind ? 'confirmed' : 'probable',
+    confidence: c.kind ? ('confirmed' as const) : ('probable' as const),
   }));
 
   return {
