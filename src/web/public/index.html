@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitor de preços</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1d2330; --muted:#6b7280; --card:#fff; --line:#e5e7eb; --acc:#2563eb; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --card:#181c23; --line:#2a3039; --acc:#60a5fa; } }
+  :root[data-theme="dark"] { --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --card:#181c23; --line:#2a3039; --acc:#60a5fa; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  header { padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600; }
+  main { display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px; max-width:1200px; margin:0 auto; }
+  @media (max-width: 760px) { main { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .item { padding:10px; border-radius:8px; cursor:pointer; border:1px solid transparent; }
+  .item:hover, .item.sel { border-color:var(--acc); }
+  .muted { color:var(--muted); font-size:13px; }
+  .price { font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:12px; }
+  th, td { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
+  .stat { flex:1; min-width:110px; }
+  canvas { width:100%; height:320px; }
+  a { color:var(--acc); }
+</style>
+</head>
+<body>
+<header>📈 Monitor de preços</header>
+<main>
+  <section class="card" id="list"><div class="muted">Carregando…</div></section>
+  <section class="card" id="detail"><div class="muted">Escolha um produto.</div></section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const BRL = (c) => c == null ? '—' : (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const STORE = { kabum: 'KaBuM!', amazon: 'Amazon', magalu: 'Magalu', mercadolivre: 'Mercado Livre', shopee: 'Shopee' };
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+let chart = null;
+
+async function loadList() {
+  const ps = await (await fetch('/api/products')).json();
+  const el = document.getElementById('list');
+  if (!ps.length) { el.innerHTML = '<div class="muted">Nenhum produto. Crie um pelo bot (/novo).</div>'; return; }
+  el.innerHTML = ps.map((p) => `
+    <div class="item" data-id="${p.id}">
+      <div>${esc(p.name)}</div>
+      <div class="muted">melhor: <span class="price">${BRL(p.bestCents)}</span>${p.targetCents ? ` · alvo ${BRL(p.targetCents)}` : ''}</div>
+    </div>`).join('');
+  el.querySelectorAll('.item').forEach((i) => i.onclick = () => select(i.dataset.id, i));
+  const hash = location.hash.match(/#p(\d+)/);
+  if (hash) select(hash[1], el.querySelector(`[data-id="${hash[1]}"]`));
+}
+
+async function select(id, node) {
+  document.querySelectorAll('.item').forEach((i) => i.classList.remove('sel'));
+  node?.classList.add('sel');
+  history.replaceState(null, '', `#p${id}`);
+  const d = await (await fetch(`/api/products/${id}/history`)).json();
+  const pts = d.points;
+  const byStore = {};
+  for (const p of pts) (byStore[p.store] ??= []).push(p);
+  const datasets = Object.entries(byStore).map(([store, arr], i) => ({
+    label: STORE[store] || store,
+    data: arr.filter((p) => p.effectiveCents).map((p) => ({ x: p.ts, y: p.effectiveCents / 100 })),
+    stepped: true,
+    borderColor: ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed'][i % 5],
+    pointRadius: 0,
+    borderWidth: 2,
+  }));
+  if (d.targetCents) datasets.push({ label: 'Alvo', data: pts.length ? [{ x: pts[0].ts, y: d.targetCents / 100 }, { x: pts.at(-1).ts, y: d.targetCents / 100 }] : [], borderDash: [6, 6], borderColor: '#9ca3af', pointRadius: 0 });
+
+  const last = [...pts].reverse();
+  const latestPerStore = Object.entries(byStore).map(([s, arr]) => arr.at(-1));
+  document.getElementById('detail').innerHTML = `
+    <h3 style="margin:0 0 8px">${esc(d.name)}</h3>
+    <div class="stats">
+      <div class="stat card"><div class="muted">Mínimo</div><div class="price">${BRL(d.stats?.min)}</div></div>
+      <div class="stat card"><div class="muted">Mediana</div><div class="price">${BRL(d.stats?.median)}</div></div>
+      <div class="stat card"><div class="muted">Máximo</div><div class="price">${BRL(d.stats?.max)}</div></div>
+    </div>
+    <div style="margin-top:12px"><canvas id="chart"></canvas></div>
+    <h4 style="margin:16px 0 4px">Último preço por loja</h4>
+    <table><thead><tr><th>Loja</th><th>Preço</th><th>Efetivo</th><th>Cupom</th><th>Estoque</th></tr></thead><tbody>
+    ${latestPerStore.map((p) => `<tr><td>${STORE[p.store] || p.store}</td><td>${BRL(p.priceCents)}</td><td class="price">${BRL(p.effectiveCents)}</td><td>${esc(p.couponCode ?? '—')}</td><td>${p.inStock ? 'sim' : 'não'}</td></tr>`).join('')}
+    </tbody></table>
+    <h4 style="margin:16px 0 4px">Últimas mudanças</h4>
+    <table><thead><tr><th>Quando</th><th>Loja</th><th>Efetivo</th></tr></thead><tbody>
+    ${last.slice(0, 20).map((p) => `<tr><td>${new Date(p.ts).toLocaleString('pt-BR')}</td><td>${STORE[p.store] || p.store}</td><td>${BRL(p.effectiveCents)}</td></tr>`).join('')}
+    </tbody></table>`;
+
+  chart?.destroy();
+  chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      parsing: false,
+      scales: {
+        x: { type: 'linear', ticks: { callback: (v) => new Date(v).toLocaleDateString('pt-BR') } },
+        y: { ticks: { callback: (v) => 'R$ ' + v } },
+      },
+      plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: R$ ${c.parsed.y.toFixed(2)}` } } },
+    },
+  });
+}
+
+loadList();
+setInterval(loadList, 60_000);
+</script>
+</body>
+</html>

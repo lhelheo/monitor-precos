@@ -1,0 +1,8 @@
+{
+  "_comentario": "Regras extras por loja. pixExtraPct: desconto Pix que a página NÃO mostra (se a página já mostra o preço Pix, deixe 0). cashbackPct: cashback que você costuma receber (Méliuz, cartão etc.). countCashback: se o cashback entra no preço efetivo.",
+  "kabum": { "pixExtraPct": 0, "cashbackPct": 0, "countCashback": false },
+  "amazon": { "pixExtraPct": 0, "cashbackPct": 0, "countCashback": false },
+  "magalu": { "pixExtraPct": 0, "cashbackPct": 0, "countCashback": false },
+  "mercadolivre": { "pixExtraPct": 0, "cashbackPct": 0, "countCashback": false },
+  "shopee": { "pixExtraPct": 0, "cashbackPct": 0, "countCashback": false }
+}
