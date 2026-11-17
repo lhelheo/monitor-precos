@@ -51,6 +51,7 @@ test('preço anunciado: pega o menor valor, ignora "de:"', () => {
 
 test('preço efetivo: escolhe o melhor cupom e respeita valor mínimo', () => {
   const scraped = { store: 'kabum', title: 'Controle DualSense', priceCents: 49900, pixCents: 46407, inStock: true };
+  /** @type {import('../src/types.ts').CouponInput[]} */
   const coupons = [
     { code: 'A', kind: 'pct', value: 10, confidence: 'confirmed', conditions: {} },
     { code: 'B', kind: 'fixed', value: 100, confidence: 'probable', conditions: {}, minCents: 60000 },

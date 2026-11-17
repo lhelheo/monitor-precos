@@ -11,7 +11,7 @@
     "start": "node src/index.js",
     "check": "node src/cli/check.js",
     "telegram:login": "node src/cli/telegram-login.js",
-    "test": "node --test test/core.test.js",
+    "test": "node --test test/core.test.js test/db.test.js test/imports.test.js",
     "dev": "node --watch src/index.js",
     "typecheck": "tsc -p tsconfig.json"
   },

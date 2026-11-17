@@ -109,3 +109,15 @@ export class BlockedError extends Error {
     this.name = 'BlockedError';
   }
 }
+
+// ---------- validação de dados externos (lojas, comparadores e agregadores) ----------
+// Respostas de sites chegam sem formato garantido: tudo entra como unknown e passa por estes validadores.
+
+/** @param {unknown} v @returns {v is Record<string, unknown>} */
+export const isRecord = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** Número finito ou null. @param {unknown} v @returns {number | null} */
+export const asNumber = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+/** Texto não vazio ou null. @param {unknown} v @returns {string | null} */
+export const asString = (v) => (typeof v === 'string' && v.length > 0 ? v : null);
