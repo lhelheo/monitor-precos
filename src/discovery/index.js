@@ -16,11 +16,23 @@ const DISCOVERED_INTERVAL_MIN = 30;
 
 /** Primeiro termo positivo das palavras-chave, usado como busca nas lojas ("controle dualsense -edge" -> "controle dualsense"). */
 export function searchTerm(keywords) {
-  if (!keywords) return null;
-  const terms = [...keywords.matchAll(/"([^"]+)"|(\S+)/g)]
-    .filter((m) => !(m[2] || '').startsWith('-'))
-    .map((m) => m[1] || m[2]);
-  return terms.length ? terms.join(' ') : null;
+  return searchTerms(keywords)[0] ?? null;
+}
+
+/**
+ * Termos de busca. Um grupo de alternativas "(console|slim|digital)" gera uma busca para cada alternativa,
+ * porque cada loja/agregador indexa os títulos de um jeito diferente.
+ */
+export function searchTerms(keywords) {
+  if (!keywords) return [];
+  let variants = [''];
+  for (const m of keywords.matchAll(/"([^"]+)"|(\S+)/g)) {
+    const raw = m[1] || m[2];
+    if ((m[2] || '').startsWith('-')) continue;
+    const alts = raw.replace(/^\(|\)$/g, '').split('|');
+    variants = variants.flatMap((v) => alts.map((a) => (v ? v + ' ' + a : a)));
+  }
+  return variants.map((v) => v.trim()).filter(Boolean).slice(0, 3);
 }
 
 const inRange = (p, cents) =>
@@ -116,7 +128,7 @@ export async function runPromobitAlerts(send = notify) {
   if (!active.length) return;
   const first = !kv.get('promobit_bootstrapped');
   const maxAgeMs = config.promobit.maxAgeHours * 3600_000;
-  const terms = [...new Set(active.map((p) => searchTerm(p.keywords)).filter(Boolean))];
+  const terms = [...new Set(active.flatMap((p) => searchTerms(p.keywords)))];
 
   for (const term of terms) {
     let links;

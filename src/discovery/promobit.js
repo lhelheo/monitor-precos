@@ -9,14 +9,24 @@ const BASE = 'https://www.promobit.com.br';
 
 /** Links de ofertas de uma busca. Devolve [{ id, url }] (id = número no fim do endereço). */
 export async function searchPromobit(term) {
-  const r = await renderHtml(`${BASE}/buscar/?q=${encodeURIComponent(term)}`, { waitMs: 5000 });
+  // a página de busca leva alguns segundos para montar os resultados; se vier vazia, tenta de novo
+  const collect = (html) => {
+    const out = new Map();
+    for (const m of html.matchAll(/href="(\/oferta\/[^"]+)"/g)) {
+      const id = m[1].match(/-(\d+)\/?$/)?.[1];
+      if (id && !out.has(id)) out.set(id, { id, url: BASE + m[1] });
+    }
+    return [...out.values()];
+  };
+  const url = `${BASE}/buscar/?q=${encodeURIComponent(term)}`;
+  let r = await renderHtml(url, { waitMs: 9000 });
   if (!r.html || r.html.length < 5000) throw new BlockedError('promobit', 'busca vazia');
-  const out = new Map();
-  for (const m of r.html.matchAll(/href="(\/oferta\/[^"]+)"/g)) {
-    const id = m[1].match(/-(\d+)\/?$/)?.[1];
-    if (id && !out.has(id)) out.set(id, { id, url: BASE + m[1] });
+  let links = collect(r.html);
+  if (!links.length) {
+    r = await renderHtml(url, { waitMs: 12000 });
+    links = collect(r.html);
   }
-  return [...out.values()];
+  return links;
 }
 
 /** Texto legível do endereço da oferta ("controle-sem-fio-dualsense-3200281/" -> "controle sem fio dualsense"). */

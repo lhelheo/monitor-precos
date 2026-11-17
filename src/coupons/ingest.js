@@ -18,16 +18,18 @@ const norm = (s) =>
  */
 export function matchesKeywords(text, keywords) {
   if (!keywords) return false;
-  const t = norm(text);
+  // "PlayStation5" escrito junto (comum em títulos) vira "playstation 5"
+  const t = norm(text).replace(/playstation(\d)/g, 'playstation $1');
   const terms = [...keywords.matchAll(/(-?)"([^"]+)"|(-?)(\S+)/g)].map((m) => ({
     neg: Boolean(m[1] || m[3]),
-    term: norm(m[2] || m[4]),
+    // "(console|slim|digital)" = qualquer uma das alternativas
+    alts: (m[2] || m[4]).replace(/^\(|\)$/g, '').split('|').map((a) => norm(a)),
   }));
   // palavra inteira (não pedaço): "-pro" não pode excluir "produto"
   const has = (term) => new RegExp('(^|[^a-z0-9])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(t);
   const pos = terms.filter((x) => !x.neg);
   if (!pos.length) return false;
-  return pos.every((x) => has(x.term)) && terms.filter((x) => x.neg).every((x) => !has(x.term));
+  return pos.every((x) => x.alts.some(has)) && terms.filter((x) => x.neg).every((x) => !x.alts.some(has));
 }
 
 /** Confiança de um cupom vindo de canal/agregador. */

@@ -169,3 +169,11 @@ test('Promobit: lê a oferta certa a partir dos dados embutidos', () => {
   assert.equal(o.store, 'Shopee');
   assert.equal(parseOffer(html, 999), null);
 });
+
+test('acessórios do console são excluídos pelas palavras-chave', () => {
+  const K = 'console playstation 5 -digital -pro -bundle -carregamento -capa -suporte -tampa -tampas -hd -externo -drive -compativel';
+  assert.equal(matchesKeywords('Tampa para Console PlayStation 5 Slim, Techno Red', K), false);
+  assert.equal(matchesKeywords('Hd Externo Portatil 1TB Compativel Console Playstation 5 Ps5', K), false);
+  assert.equal(matchesKeywords('Leitor Drive De Disco Console Ps5 Playstation 5 Slim', K), false);
+  assert.equal(matchesKeywords('Console Sony PlayStation 5 Slim, Leitor de Discos, SSD 1TB', K), true);
+});
