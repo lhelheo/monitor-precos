@@ -14,4 +14,4 @@ RUN mkdir -p /app/data
 
 VOLUME ["/app/data"]
 EXPOSE 8080
-CMD ["node", "src/index.js"]
+CMD ["node", "src/index.ts"]

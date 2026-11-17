@@ -1,6 +1,7 @@
 import { TelegramClient } from 'telegram';
 import type { ProductRow } from '../types.ts';
 import type { CouponWrite } from '../db.ts';
+import type { DealInfo } from './parser.ts';
 import { StringSession } from 'telegram/sessions/index.js';
 import { NewMessage } from 'telegram/events/index.js';
 import { config } from '../config.ts';
@@ -17,7 +18,7 @@ import { ingestText } from './ingest.ts';
 export type PromoMatchHandler = (m: {
   product: ProductRow;
   text: string;
-  deal: unknown;
+  deal: DealInfo | null;
   coupons: CouponWrite[];
   channel: string;
   link: string | null;

@@ -23,8 +23,5 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.js"
-  ],
-  "exclude": [
-    "src/index.js"
   ]
 }

@@ -57,7 +57,7 @@ export function formatDeal(args: {
   deal: { product?: string; finalCents?: number | null } | null;
   coupons: Array<{ code?: string | null; confidence: Confidence }>;
   channel: string;
-  link?: string;
+  link?: string | null;
 }) {
   const { product, text, deal, coupons, channel, link } = args;
   const lines = [`📣 <b>${esc(product.name)}</b> apareceu em <b>${esc(channel)}</b>`];

@@ -17,8 +17,8 @@ if (bot) {
   bot.start({ onStart: (me) => log.info(`Bot @${me.username} online`) });
 }
 
-const web = await startWeb().catch((e) => {
-  log.error(`Painel web não iniciou: ${e.message}`);
+const web = await startWeb().catch((e: unknown) => {
+  log.error(`Painel web não iniciou: ${(e as Error).message}`);
   return null;
 });
 
@@ -26,12 +26,12 @@ const scheduler = startScheduler();
 
 const promo = await startPromoListener(async ({ product, text, deal, coupons, channel, link }) => {
   await notify(formatDeal({ product, text, deal, coupons, channel, link }));
-}).catch((e) => {
-  log.error(`Leitor de canais não iniciou: ${e.message}`);
+}).catch((e: unknown) => {
+  log.error(`Leitor de canais não iniciou: ${(e as Error).message}`);
   return null;
 });
 
-async function shutdown(sig) {
+async function shutdown(sig: string): Promise<void> {
   log.info(`Encerrando (${sig})`);
   scheduler.stop();
   await bot?.stop();
@@ -43,4 +43,4 @@ async function shutdown(sig) {
 }
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('unhandledRejection', (e) => log.error(`Promise rejeitada: ${/** @type {any} */ (e)?.stack || e}`));
+process.on('unhandledRejection', (e: unknown) => log.error(`Promise rejeitada: ${(e as Error | undefined)?.stack || e}`));

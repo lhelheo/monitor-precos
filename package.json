@@ -8,11 +8,11 @@
     "node": ">=24"
   },
   "scripts": {
-    "start": "node src/index.js",
-    "check": "node src/cli/check.js",
-    "telegram:login": "node src/cli/telegram-login.js",
+    "start": "node src/index.ts",
+    "check": "node src/cli/check.ts",
+    "telegram:login": "node src/cli/telegram-login.ts",
     "test": "node --test test/core.test.js test/db.test.js test/imports.test.js",
-    "dev": "node --watch src/index.js",
+    "dev": "node --watch src/index.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
