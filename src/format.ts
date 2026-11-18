@@ -67,3 +67,17 @@ export function formatDeal(args: {
   if (link) lines.push('', `<a href="${esc(link)}">Ver mensagem</a>`);
   return lines.join('\n');
 }
+
+/** Limite de legenda de foto no Telegram (caracteres, sem as tags HTML). */
+export const CAPTION_LIMIT = 1024;
+
+/**
+ * Com foto, o aviso vai como legenda. Se o texto couber, a legenda é o aviso inteiro.
+ * Se não couber, a legenda fica só com a primeira linha, e o aviso completo vai em seguida como texto.
+ */
+export function splitForPhoto(html: string): { caption: string; rest: string | null } {
+  const plain = html.replace(/<[^>]+>/g, '');
+  if (plain.length <= CAPTION_LIMIT) return { caption: html, rest: null };
+  const firstBreak = html.indexOf('\n');
+  return { caption: firstBreak > 0 ? html.slice(0, firstBreak) : html.slice(0, CAPTION_LIMIT), rest: html };
+}

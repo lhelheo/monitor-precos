@@ -1,11 +1,11 @@
-import { Bot, type Context } from 'grammy';
+import { Bot, InputFile, type Context } from 'grammy';
 import { config } from './config.ts';
 import { coupons, listings, prices, products } from './db.ts';
 import { checkListing } from './checker.ts';
 import { storeFor, normalizeUrl, STORES } from './stores/index.ts';
 import { ingestText } from './coupons/ingest.ts';
 import { esc, formatDeal } from './format.ts';
-import { setSender } from './notifier.ts';
+import { setPhotoSender, setSender } from './notifier.ts';
 import { fmt } from './stores/common.ts';
 import { log } from './log.ts';
 
@@ -51,6 +51,10 @@ export function createBot() {
   setSender(async (html: string, opts: { disablePreview?: boolean } = {}) => {
     if (!chatId) return;
     await bot.api.sendMessage(chatId, html, { parse_mode: 'HTML', link_preview_options: { is_disabled: opts.disablePreview ?? true } });
+  });
+  setPhotoSender(async (photo: Buffer, caption: string) => {
+    if (!chatId) return;
+    await bot.api.sendPhoto(chatId, new InputFile(photo, 'oferta.jpg'), { caption, parse_mode: 'HTML' });
   });
 
   // Só o dono usa o bot

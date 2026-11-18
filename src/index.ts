@@ -6,8 +6,8 @@ import { startScheduler } from './scheduler.ts';
 import { createBot } from './bot.ts';
 import { startWeb } from './web/server.ts';
 import { startPromoListener } from './coupons/telegram-listener.ts';
-import { formatDeal } from './format.ts';
-import { notify } from './notifier.ts';
+import { formatDeal, splitForPhoto } from './format.ts';
+import { notify, notifyPhoto } from './notifier.ts';
 import { closeBrowser } from './http.ts';
 
 openDb();
@@ -25,11 +25,15 @@ const web = await startWeb().catch((e: unknown) => {
 
 const scheduler = startScheduler();
 
-const promo = await startPromoListener(async ({ product, text, deal, coupons, channel, link }) => {
+const promo = await startPromoListener(async ({ product, text, deal, coupons, channel, link, image }) => {
   // a mesma oferta pode circular em vários grupos: avisa uma vez por dia
   const day = new Date().toISOString().slice(0, 10);
   if (!seen.markNew('offer', offerKey(product.id, deal?.finalCents ?? null, text, day))) return;
-  await notify(formatDeal({ product, text, deal, coupons, channel, link }));
+  const html = formatDeal({ product, text, deal, coupons, channel, link });
+  // com foto da mensagem original: a foto vai com o aviso como legenda (ou primeira linha, se o texto for longo)
+  const { caption, rest } = splitForPhoto(html);
+  const sent = image ? await notifyPhoto(image, caption) : false;
+  if (!sent || rest) await notify(html);
 }).catch((e: unknown) => {
   log.error(`Leitor de canais não iniciou: ${(e as Error).message}`);
   return null;

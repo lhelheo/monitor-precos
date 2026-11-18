@@ -28,6 +28,8 @@ export type PromoMatchHandler = (m: {
   coupons: CouponWrite[];
   channel: string;
   link: string | null;
+  /** foto da mensagem original, quando ela tem uma (baixada só se a mensagem casar com um produto) */
+  image: Buffer | null;
 }) => Promise<void> | void;
 
 /** Conversa do Telegram (canal, grupo ou privada) vista pela conta. */
@@ -43,6 +45,9 @@ const POLL_MS = 2 * 60_000;
 const POLL_LIMIT = 50;
 
 type Entity = Parameters<TelegramClient['getMessages']>[0];
+/** Mensagem do Telegram que pode conter foto. */
+type MediaMsg = Parameters<TelegramClient['downloadMedia']>[0];
+const hasPhoto = (m: unknown) => Boolean((m as { photo?: unknown } | null)?.photo);
 /** Identificador aceito pelo filtro de mensagens (NewMessage chats). */
 type ChatId = NonNullable<NonNullable<ConstructorParameters<typeof NewMessage>[0]>['chats']>[number];
 
@@ -104,7 +109,7 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
   }
 
   /** Analisa uma mensagem (vinda do evento ou da conferência) e chama onMatch para cada produto citado. */
-  const handle = async (msgId: number, text: string, chat: ChatInfo) => {
+  const handle = async (msgId: number, text: string, chat: ChatInfo, media: MediaMsg | null) => {
     const channel = chat.username || chat.title || 'canal';
     // conversa comum de grupo (sem preço, cupom nem link de loja) nem é analisada
     if (!isOfferMessage(text)) return;
@@ -112,9 +117,20 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
       const r = await ingestText(text, { source: 'telegram', origin: channel });
       if (r.coupons.length) log.info(`Canal ${channel}: ${r.coupons.length} cupom(ns) salvos (${r.coupons.map((c) => c.code).join(', ')})`);
       log.info(`Oferta de ${channel}: ${r.matchedProducts.length} produto(s) casado(s)`);
+      if (!r.matchedProducts.length) return;
       const link = messageLink(chat.username, chat.markedId, msgId);
+      // a foto só é baixada quando a oferta casa com um produto
+      let image: Buffer | null = null;
+      if (media && hasPhoto(media)) {
+        try {
+          const data = await client.downloadMedia(media, {});
+          image = data instanceof Buffer ? data : null;
+        } catch (e) {
+          log.warn(`Foto de ${channel} não baixada: ${(e as Error).message}`);
+        }
+      }
       for (const product of r.matchedProducts) {
-        await onMatch?.({ product, text, deal: r.deal, coupons: r.coupons, channel, link });
+        await onMatch?.({ product, text, deal: r.deal, coupons: r.coupons, channel, link, image });
       }
     } catch (e) {
       log.warn(`Erro ao processar mensagem de ${channel}: ${(e as Error).message}`);
@@ -128,11 +144,12 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
       const text = msg?.message;
       if (!text) return;
       const chat = (await msg.getChat().catch((): null => null)) as unknown as { id?: { toString(): string }; username?: string; title?: string } | null;
-      await handle(msg.id, text, {
-        markedId: chat?.id?.toString() ?? null,
-        username: chat?.username ?? null,
-        title: chat?.title ?? null,
-      });
+      await handle(
+        msg.id,
+        text,
+        { markedId: chat?.id?.toString() ?? null, username: chat?.username ?? null, title: chat?.title ?? null },
+        msg as unknown as MediaMsg,
+      );
     },
     new NewMessage({ chats: watched.map((w) => w.id) }),
   );
@@ -154,7 +171,7 @@ export async function startPromoListener(onMatch: PromoMatchHandler | undefined)
         const ordered = [...msgs].sort((a, b) => a.id - b.id);
         log.info(`Conferência de ${w.label}: ${ordered.length} mensagem(ns) nova(s)`);
         for (const m of ordered) {
-          if (m.message) await handle(m.id, m.message, { markedId: w.markedId, username: w.username, title: w.label });
+          if (m.message) await handle(m.id, m.message, { markedId: w.markedId, username: w.username, title: w.label }, m as unknown as MediaMsg);
         }
         kv.set(key, String(ordered[ordered.length - 1].id));
       } catch (e) {

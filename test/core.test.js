@@ -13,6 +13,7 @@ import { normalizeUrl, storeFor } from '../src/stores/index.ts';
 import { matchesKeywords, withinRange } from '../src/coupons/ingest.ts';
 import { alertReasons } from '../src/alerts.ts';
 import { isOfferMessage, messageLink, offerKey } from '../src/coupons/offers.ts';
+import { splitForPhoto, CAPTION_LIMIT } from '../src/format.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fixture = (n) => fs.readFileSync(path.join(here, 'fixtures', n), 'utf8');
@@ -95,6 +96,15 @@ test('grupos: conversa comum fica de fora; oferta com preço, cupom ou loja pass
   assert.equal(isOfferMessage('Controle DualSense por R$ 349,90'), true);
   assert.equal(isOfferMessage('cupom DUALSENSE10 válido hoje'), true);
   assert.equal(isOfferMessage('https://www.amazon.com.br/dp/B0HMX7CTSY'), true);
+});
+
+test('foto: aviso curto vai inteiro como legenda; aviso longo vira primeira linha + texto completo', () => {
+  const curto = '📣 <b>Mouse</b> apareceu em <b>Low Price</b>\nPreço anunciado: <b>R$ 99,99</b>';
+  assert.deepEqual(splitForPhoto(curto), { caption: curto, rest: null });
+  const longo = `📣 <b>Mouse</b> apareceu em <b>Low Price</b>\n${'x'.repeat(CAPTION_LIMIT + 50)}`;
+  const r = splitForPhoto(longo);
+  assert.equal(r.caption, '📣 <b>Mouse</b> apareceu em <b>Low Price</b>');
+  assert.equal(r.rest, longo);
 });
 
 test('grupos: link de mensagem para canal público e para grupo privado', () => {
